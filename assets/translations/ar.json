@@ -1,0 +1,54 @@
+{
+  "app_title": "أيس فلو",
+  "dashboard": "لوحة التحكم",
+  "bills": "الفواتير",
+  "schedule": "الجدول اليومي",
+  "customers": "الزبائن",
+  "reports": "التقارير",
+  "statistics": "الإحصائيات",
+  "settings": "الإعدادات",
+  "help": "المساعدة",
+  "logout": "تسجيل الخروج",
+  
+  "greeting": "صباح الخير، أحمد",
+  "overview_subtitle": "إليك نظرة عامة على اليوم.",
+  
+  "revenue": "إيرادات اليوم",
+  "ice_sold": "مبيعات الثلج اليوم",
+  "trips": "رحلات اليوم",
+  "outstanding_balance": "الرصيد المستحق",
+  
+  "inventory_tracking": "تتبع المخزون",
+  "loaded": "المحمل",
+  "sold": "المباع",
+  "remaining": "المتبقي",
+  
+  "sales_7_days": "المبيعات في آخر ٧ أيام",
+  "recent_activity": "النشاط الأخير",
+  "view_all": "عرض الكل",
+  
+  "completed": "مكتمل",
+  "pending": "معلق",
+  "in_progress": "قيد التنفيذ",
+  "unpaid": "غير مدفوع",
+  "paid": "مدفوع",
+  "partial": "جزئي",
+  
+  "create_invoice": "إنشاء فاتورة",
+  "select_customer": "اختر زبوناً",
+  "search_customer": "ابحث عن اسم الزبون أو رقم المعرف...",
+  "ice_products": "منتجات الثلج",
+  "payment_details": "تفاصيل الدفع",
+  "subtotal": "المجموع الفرعي",
+  "tax": "الضريبة (٥٪)",
+  "total": "المجموع الكلي",
+  "notes": "ملاحظات (اختياري)",
+  "generate_invoice_qr": "توليد الفاتورة والرمز QR",
+  
+  "date_range": "النطاق الزمني",
+  "start_date": "تاريخ البدء",
+  "end_date": "تاريخ الانتهاء",
+  "format": "الصيغة",
+  "generate_report": "توليد التقرير",
+  "recent_exports": "الملفات المصدرة مؤخراً"
+}

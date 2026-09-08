@@ -1,0 +1,54 @@
+{
+  "app_title": "Ice Flow",
+  "dashboard": "Dashboard",
+  "bills": "Bills",
+  "schedule": "Schedule",
+  "customers": "Customers",
+  "reports": "Reports",
+  "statistics": "Statistics",
+  "settings": "Settings",
+  "help": "Help",
+  "logout": "Logout",
+  
+  "greeting": "Good Morning, Ahmad",
+  "overview_subtitle": "Here is today's overview.",
+  
+  "revenue": "Today's Revenue",
+  "ice_sold": "Ice Sold Today",
+  "trips": "Today's Trips",
+  "outstanding_balance": "Outstanding Balance",
+  
+  "inventory_tracking": "Inventory Tracking",
+  "loaded": "Loaded",
+  "sold": "Sold",
+  "remaining": "Remaining",
+  
+  "sales_7_days": "Sales Last 7 Days",
+  "recent_activity": "Recent Activity",
+  "view_all": "View All",
+  
+  "completed": "Completed",
+  "pending": "Pending",
+  "in_progress": "In Progress",
+  "unpaid": "Unpaid",
+  "paid": "Paid",
+  "partial": "Partial",
+  
+  "create_invoice": "Create Invoice",
+  "select_customer": "Select Customer",
+  "search_customer": "Search customer name or ID...",
+  "ice_products": "Ice Products",
+  "payment_details": "Payment Details",
+  "subtotal": "Subtotal",
+  "tax": "Tax (5%)",
+  "total": "Total",
+  "notes": "Notes (Optional)",
+  "generate_invoice_qr": "Generate Invoice & QR",
+  
+  "date_range": "Date Range",
+  "start_date": "START DATE",
+  "end_date": "END DATE",
+  "format": "Format",
+  "generate_report": "Generate Report",
+  "recent_exports": "Recent Exports"
+}
