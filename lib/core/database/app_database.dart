@@ -134,6 +134,43 @@ class IceInventoryEntries extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Workers table – stores each factory employee profile.
+@DataClassName('Worker')
+class Workers extends Table {
+  TextColumn get id => text()();
+  TextColumn get firstName => text()();
+  TextColumn get lastName => text()();
+  TextColumn get phone => text()();
+  /// Role: driver | all_around | factory
+  TextColumn get role => text()();
+  /// Shift: morning | afternoon | night
+  TextColumn get shift => text()();
+  /// Monthly base salary in SYP
+  RealColumn get monthlySalary => real().withDefault(const Constant(0.0))();
+  /// Accumulated outstanding debt / loan balance owed by this worker
+  RealColumn get loanBalance => real().withDefault(const Constant(0.0))();
+  DateTimeColumn get hireDate => dateTime()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Worker payment events – salary disbursements and loan advances.
+@DataClassName('WorkerPayment')
+class WorkerPayments extends Table {
+  TextColumn get id => text()();
+  TextColumn get workerId => text()();
+  /// Type: salary | loan_advance | loan_repayment
+  TextColumn get type => text()();
+  RealColumn get amount => real()();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get notes => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     Customers,
@@ -145,13 +182,15 @@ class IceInventoryEntries extends Table {
     Notifications,
     AppSettings,
     IceInventoryEntries,
+    Workers,
+    WorkerPayments,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -163,6 +202,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 3) {
         await m.addColumn(trips, trips.iceLoadKg);
         await m.createTable(iceInventoryEntries);
+      }
+      if (from < 4) {
+        await m.createTable(workers);
+        await m.createTable(workerPayments);
       }
     },
   );

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/database/app_database.dart';
 import '../../core/providers/repository_providers.dart';
 import 'add_new_trip.dart'; // reuse TripStatus enum
@@ -34,12 +35,12 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     super.initState();
     final t = widget.trip;
     _destinationController = TextEditingController(text: t.truckNumber);
-    _iceLoadController =
-        TextEditingController(text: t.iceLoadKg.toStringAsFixed(0));
+    _iceLoadController = TextEditingController(
+      text: t.iceLoadKg.toStringAsFixed(0),
+    );
     _driverController = TextEditingController(text: t.driverName);
     _selectedDate = t.date;
-    _selectedTime =
-        TimeOfDay(hour: t.date.hour, minute: t.date.minute);
+    _selectedTime = TimeOfDay(hour: t.date.hour, minute: t.date.minute);
 
     // Parse existing status
     if (t.status == 'Completed') {
@@ -93,11 +94,11 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
   String get _statusString {
     switch (_selectedStatus) {
       case TripStatus.completed:
-        return 'Completed';
+        return context.translate('completed');
       case TripStatus.inProgress:
-        return 'In Progress';
+        return context.translate('in_progress');
       case TripStatus.pending:
-        return 'Pending';
+        return context.translate('pending');
     }
   }
 
@@ -105,7 +106,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     final destination = _destinationController.text.trim();
     if (destination.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a destination / location')),
+        SnackBar(content: Text(context.translate('destination_required'))),
       );
       return;
     }
@@ -113,7 +114,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
     final iceLoad = double.tryParse(_iceLoadController.text.trim()) ?? 0.0;
     if (iceLoad <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid ice load in kg')),
+        SnackBar(content: Text(context.translate('valid_ice_load'))),
       );
       return;
     }
@@ -132,8 +133,8 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       );
 
       final statusStr = _statusString;
-      final isCompleted = statusStr == 'Completed';
-      final isPending = statusStr == 'Pending';
+      final isCompleted = statusStr == context.translate('completed');
+      final isPending = statusStr == context.translate('pending');
 
       final updatedTrip = widget.trip.copyWith(
         truckNumber: destination,
@@ -152,8 +153,9 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Trip to "$destination" updated ($statusStr)'),
+            content: Text(
+              '${context.translate('trip_updated')} "$destination" ${context.translate('to')} $statusStr',
+            ),
             backgroundColor: AppColors.paid,
           ),
         );
@@ -163,7 +165,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error updating trip: $e'),
+            content: Text('${context.translate('error_updating_trip')}: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -237,7 +239,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Trip Details',
+                context.translate('trip_details'),
                 style: GoogleFonts.manrope(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -245,7 +247,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                 ),
               ),
               Text(
-                'ID: ${widget.trip.id}',
+                context.translate('trip_id').replaceAll('{id}', widget.trip.id),
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 10,
                   color: labelGrey,
@@ -259,21 +261,21 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
   }
 
   BoxDecoration get _cardDecoration => BoxDecoration(
-        color: cardBlue,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-      );
+    color: cardBlue,
+    borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+  );
 
   BoxDecoration get _innerFieldDecoration => BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      );
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(14),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.04),
+        blurRadius: 6,
+        offset: const Offset(0, 2),
+      ),
+    ],
+  );
 
   Widget _sectionLabel(String text) {
     return Align(
@@ -297,7 +299,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('DESTINATION / LOCATION'),
+          _sectionLabel(context.translate('destination_location')),
           const SizedBox(height: 10),
           Container(
             height: 52,
@@ -312,7 +314,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                     controller: _destinationController,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'e.g. Al Safa Supermarket / King Fahd Rd',
+                      hintText: context.translate('destination_hint'),
                       hintStyle: GoogleFonts.manrope(
                         color: labelGrey,
                         fontSize: 14,
@@ -336,7 +338,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('DRIVER / TRUCK FLEET'),
+          _sectionLabel(context.translate('driver_truck_fleet')),
           const SizedBox(height: 10),
           Container(
             height: 52,
@@ -351,7 +353,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                     controller: _driverController,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Driver name or Truck #',
+                      hintText: context.translate('driver_name_or_truck'),
                       hintStyle: GoogleFonts.manrope(
                         color: labelGrey,
                         fontSize: 14,
@@ -379,7 +381,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _sectionLabel('TIME'),
+                _sectionLabel(context.translate('time_label')),
                 const SizedBox(height: 10),
                 GestureDetector(
                   onTap: _pickTime,
@@ -399,8 +401,11 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const Icon(Icons.arrow_drop_down,
-                            color: navy, size: 18),
+                        const Icon(
+                          Icons.arrow_drop_down,
+                          color: navy,
+                          size: 18,
+                        ),
                       ],
                     ),
                   ),
@@ -417,7 +422,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _sectionLabel('DATE'),
+                _sectionLabel(context.translate('date_label')),
                 const SizedBox(height: 10),
                 GestureDetector(
                   onTap: _pickDate,
@@ -441,8 +446,11 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const Icon(Icons.arrow_drop_down,
-                            color: navy, size: 18),
+                        const Icon(
+                          Icons.arrow_drop_down,
+                          color: navy,
+                          size: 18,
+                        ),
                       ],
                     ),
                   ),
@@ -462,7 +470,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('ICE LOAD (KG)'),
+          _sectionLabel(context.translate('ice_load_kg')),
           const SizedBox(height: 10),
           Container(
             height: 52,
@@ -495,7 +503,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'kg',
+                  context.translate('kg'),
                   style: GoogleFonts.jetBrainsMono(
                     color: labelGrey,
                     fontSize: 14,
@@ -517,13 +525,13 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('STATUS'),
+          _sectionLabel(context.translate('status_label')),
           const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
                 child: _statusChip(
-                  label: 'Completed',
+                  label: context.translate('completed'),
                   icon: Icons.check_circle_outline,
                   status: TripStatus.completed,
                 ),
@@ -531,7 +539,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: _statusChip(
-                  label: 'In Progress',
+                  label: context.translate('in_progress'),
                   icon: Icons.local_shipping_outlined,
                   status: TripStatus.inProgress,
                 ),
@@ -539,7 +547,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: _statusChip(
-                  label: 'Pending',
+                  label: context.translate('pending'),
                   icon: Icons.schedule_outlined,
                   status: TripStatus.pending,
                 ),
@@ -582,11 +590,7 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: selected ? Colors.white : navy,
-            ),
+            Icon(icon, size: 16, color: selected ? Colors.white : navy),
             const SizedBox(height: 2),
             Text(
               label,
@@ -622,13 +626,15 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2.5),
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Save Changes',
+                    context.translate('save_changes'),
                     style: GoogleFonts.manrope(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,

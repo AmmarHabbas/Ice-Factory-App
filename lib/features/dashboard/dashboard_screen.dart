@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
 import '../../core/database/app_database.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/repositories/app_repository.dart';
@@ -19,16 +20,16 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final today = DateFormat('EEEE, MMMM d').format(DateTime.now());
-    final exchangeRate = ref.watch(exchangeRateProvider);
 
     final billsAsync = ref.watch(allBillsStreamProvider);
     final tripsAsync = ref.watch(allTripsStreamProvider);
     final todayIceSoldAsync = ref.watch(todayIceSoldStreamProvider);
+    final workerPaymentsAsync = ref.watch(allWorkerPaymentsStreamProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppNavigationDrawer(currentLocation: '/dashboard'),
-      appBar: AppHeader(title: 'Dashboard'),
+      appBar: AppHeader(title: context.translate('dashboard')),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
@@ -60,19 +61,35 @@ class DashboardScreen extends ConsumerWidget {
                         )
                         .toList();
                     final todayRev = netRevenue(todayBills);
+
+                    // Subtract today's worker costs
+                    final allPayments = workerPaymentsAsync.valueOrNull ?? [];
+                    final todayPayments = allPayments
+                        .where(
+                          (p) => p.date.toString().substring(0, 10) == todayStr,
+                        )
+                        .toList();
+                    final salaryCost = todayPayments
+                        .where((p) => p.type == 'salary')
+                        .fold(0.0, (sum, p) => sum + p.amount);
+                    final loanAdvances = todayPayments
+                        .where((p) => p.type == 'loan_advance')
+                        .fold(0.0, (sum, p) => sum + p.amount);
+                    final netTodayRev = todayRev - (salaryCost + loanAdvances);
+
                     return MetricCard(
-                      label: "Today's Revenue",
-                      value: CurrencyFormatter.formatUSD(todayRev),
-                      unit: '',
-                      icon: Icons.account_balance_wallet_outlined,
-                      iconColor: AppColors.paid,
-                      iconBg: AppColors.paidContainer,
+                      label: context.translate('todays_revenue'),
+                      value: CurrencyFormatter.formatSYP(netTodayRev),
                     );
                   },
-                  loading: () =>
-                      const MetricCard(label: "Today's Revenue", value: '...'),
-                  error: (_, __) =>
-                      const MetricCard(label: "Today's Revenue", value: '\$0'),
+                  loading: () => MetricCard(
+                    label: context.translate('todays_revenue'),
+                    value: '...',
+                  ),
+                  error: (_, __) => MetricCard(
+                    label: context.translate('todays_revenue'),
+                    value: '\$0',
+                  ),
                 ),
                 tripsAsync.when(
                   data: (trips) {
@@ -86,7 +103,7 @@ class DashboardScreen extends ConsumerWidget {
                         .where((t) => t.status == 'Completed')
                         .length;
                     return MetricCard(
-                      label: 'Trips Completed',
+                      label: context.translate('trips_completed'),
                       value: '$completed',
                       unit: '/ ${todayTrips.length}',
                       icon: Icons.local_shipping_outlined,
@@ -94,10 +111,14 @@ class DashboardScreen extends ConsumerWidget {
                       iconBg: AppColors.secondaryContainer,
                     );
                   },
-                  loading: () =>
-                      const MetricCard(label: 'Trips Completed', value: '...'),
-                  error: (_, __) =>
-                      const MetricCard(label: 'Trips Completed', value: '0'),
+                  loading: () => MetricCard(
+                    label: context.translate('trips_completed'),
+                    value: '...',
+                  ),
+                  error: (_, __) => MetricCard(
+                    label: context.translate('trips_completed'),
+                    value: '0',
+                  ),
                 ),
                 billsAsync.when(
                   data: (bills) {
@@ -105,23 +126,27 @@ class DashboardScreen extends ConsumerWidget {
                       bills,
                     ).where((b) => b.status != 'paid').length;
                     return MetricCard(
-                      label: 'Pending Bills',
+                      label: context.translate('pending_bills'),
                       value: '$pendingCount',
-                      unit: 'bills',
+                      unit: context.translate('bills'),
                       icon: Icons.pending_actions_outlined,
                       iconColor: AppColors.unpaid,
                       iconBg: AppColors.unpaidContainer,
                     );
                   },
-                  loading: () =>
-                      const MetricCard(label: 'Pending Bills', value: '...'),
-                  error: (_, __) =>
-                      const MetricCard(label: 'Pending Bills', value: '0'),
+                  loading: () => MetricCard(
+                    label: context.translate('pending_bills'),
+                    value: '...',
+                  ),
+                  error: (_, __) => MetricCard(
+                    label: context.translate('pending_bills'),
+                    value: '0',
+                  ),
                 ),
                 todayIceSoldAsync.when(
                   data: (soldKg) {
                     return MetricCard(
-                      label: 'Ice Sold Today',
+                      label: context.translate('ice_sold'),
                       value: soldKg.toStringAsFixed(0),
                       unit: 'kg',
                       icon: Icons.ac_unit,
@@ -131,10 +156,12 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     );
                   },
-                  loading: () =>
-                      const MetricCard(label: 'Ice Sold Today', value: '...'),
-                  error: (_, __) => const MetricCard(
-                    label: 'Ice Sold Today',
+                  loading: () => MetricCard(
+                    label: context.translate('ice_sold'),
+                    value: '...',
+                  ),
+                  error: (_, __) => MetricCard(
+                    label: context.translate('ice_sold'),
                     value: '0',
                     unit: 'kg',
                   ),
@@ -149,8 +176,8 @@ class DashboardScreen extends ConsumerWidget {
               horizontal: AppDimensions.containerMargin,
             ),
             child: SectionHeader(
-              title: "Today's Schedule",
-              actionLabel: 'View All',
+              title: context.translate('todays_schedule'),
+              actionLabel: context.translate('view_all'),
               onAction: () => context.go('/schedule'),
             ),
           ),
@@ -167,7 +194,7 @@ class DashboardScreen extends ConsumerWidget {
                     horizontal: AppDimensions.containerMargin,
                   ),
                   child: Text(
-                    'No trips scheduled for today.',
+                    context.translate('No trips scheduled for today'),
                     style: GoogleFonts.manrope(
                       fontSize: 13,
                       color: AppColors.onSurfaceVariant,
@@ -193,8 +220,8 @@ class DashboardScreen extends ConsumerWidget {
               horizontal: AppDimensions.containerMargin,
             ),
             child: SectionHeader(
-              title: 'Recent Bills',
-              actionLabel: 'View All',
+              title: context.translate('recent_bills'),
+              actionLabel: context.translate('view_all'),
               onAction: () => context.go('/bills'),
             ),
           ),
@@ -218,10 +245,7 @@ class DashboardScreen extends ConsumerWidget {
               return Column(
                 children: bills
                     .take(4)
-                    .map(
-                      (inv) =>
-                          _InvoiceTile(bill: inv, exchangeRate: exchangeRate),
-                    )
+                    .map((inv) => _InvoiceTile(bill: inv))
                     .toList(),
               );
             },
@@ -383,7 +407,7 @@ class _TripTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          'Driver: ${trip.driverName}',
+          '${context.translate('driver')}: ${trip.driverName}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.manrope(
@@ -402,8 +426,8 @@ class _TripTile extends StatelessWidget {
 
 class _InvoiceTile extends StatelessWidget {
   final Bill bill;
-  final double exchangeRate;
-  const _InvoiceTile({required this.bill, required this.exchangeRate});
+
+  const _InvoiceTile({required this.bill});
 
   @override
   Widget build(BuildContext context) {
@@ -464,19 +488,12 @@ class _InvoiceTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              CurrencyFormatter.formatUSD(bill.total),
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
+            Text(CurrencyFormatter.formatSYP(bill.total)),
             const SizedBox(height: 4),
             StatusChip(label: bill.status.toUpperCase(), color: statusColor),
           ],
         ),
-        onTap: () => context.go('/bills/detail', extra: bill),
+        onTap: () => context.push('/bills/detail', extra: bill),
       ),
     );
   }

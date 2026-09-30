@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -35,25 +36,25 @@ class _BottomNavBar extends StatelessWidget {
       _NavItem(
         icon: Icons.dashboard_outlined,
         activeIcon: Icons.dashboard,
-        label: 'Dashboard',
+        label: context.translate('dashboard'),
         path: '/dashboard',
       ),
       _NavItem(
         icon: Icons.event_note_outlined,
         activeIcon: Icons.event_note,
-        label: 'Schedule',
+        label: context.translate('schedule'),
         path: '/schedule',
       ),
       _NavItem(
         icon: Icons.receipt_long_outlined,
         activeIcon: Icons.receipt_long,
-        label: 'Invoices',
+        label: context.translate('bills'),
         path: '/bills',
       ),
       _NavItem(
         icon: Icons.group_outlined,
         activeIcon: Icons.group,
-        label: 'Customers',
+        label: context.translate('customers'),
         path: '/customers',
       ),
     ];
@@ -229,12 +230,16 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     size: 16,
                   ),
                 ),
-                Text(
-                  title,
-                  style: GoogleFonts.manrope(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    title,
+                    style: GoogleFonts.manrope(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -261,49 +266,54 @@ class AppNavigationDrawer extends StatelessWidget {
     final navItems = [
       _DrawerItem(
         icon: Icons.dashboard_outlined,
-        label: 'Dashboard',
+        label: context.translate('dashboard'),
         path: '/dashboard',
       ),
       _DrawerItem(
         icon: Icons.receipt_long_outlined,
-        label: 'Bills',
+        label: context.translate('bills'),
         path: '/bills',
       ),
       _DrawerItem(
         icon: Icons.inventory_2_outlined,
-        label: 'Ice Inventory',
+        label: context.translate('inventory_tracking'),
         path: '/ice-inventory',
       ),
       _DrawerItem(
         icon: Icons.calendar_today_outlined,
-        label: "Today's Schedule",
+        label: context.translate('schedule'),
         path: '/schedule',
       ),
       _DrawerItem(
+        icon: Icons.person_outline_sharp,
+        label: context.translate('workers'),
+        path: '/workers',
+      ),
+      _DrawerItem(
         icon: Icons.group_outlined,
-        label: 'Customers',
+        label: context.translate('customers'),
         path: '/customers',
       ),
     ];
     final secondaryItems = [
       _DrawerItem(
         icon: Icons.description_outlined,
-        label: 'Reports',
+        label: context.translate('reports'),
         path: '/reports',
       ),
       _DrawerItem(
         icon: Icons.bar_chart_outlined,
-        label: 'Statistics',
+        label: context.translate('statistics'),
         path: '/statistics',
       ),
       _DrawerItem(
         icon: Icons.settings_outlined,
-        label: 'Settings',
+        label: context.translate('settings'),
         path: '/settings',
       ),
       _DrawerItem(
         icon: Icons.search_outlined,
-        label: 'Search',
+        label: context.translate('search'),
         path: '/search',
       ),
     ];
@@ -398,10 +408,10 @@ class AppNavigationDrawer extends StatelessWidget {
               child: ListTile(
                 leading: const Icon(Icons.logout, color: AppColors.error),
                 title: Text(
-                  'Logout',
+                  context.translate('logout'),
                   style: GoogleFonts.manrope(color: AppColors.error),
                 ),
-                onTap: () => context.go('/onboarding'),
+                onTap: () => context.go('/login'),
               ),
             ),
           ],

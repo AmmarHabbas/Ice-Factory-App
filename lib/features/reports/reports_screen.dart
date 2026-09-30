@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/repositories/app_repository.dart';
@@ -18,15 +19,15 @@ class ReportsScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
-  String _period = 'This Week (Sat-Fri)';
+  String _period = 'this_week_sat_fri';
 
   (DateTime, DateTime) _getDateRange(String period) {
     final now = DateTime.now();
-    if (period == 'Today (Daily)') {
+    if (period == 'today_daily') {
       final start = DateTime(now.year, now.month, now.day);
       final end = DateTime(now.year, now.month, now.day, 23, 59, 59);
       return (start, end);
-    } else if (period == 'This Week (Sat-Fri)') {
+    } else if (period == 'this_week_sat_fri') {
       final daysToSub = (now.weekday - DateTime.saturday) % 7;
       final start = DateTime(
         now.year,
@@ -37,7 +38,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
       );
       return (start, end);
-    } else if (period == 'This Month') {
+    } else if (period == 'this_month') {
       final start = DateTime(now.year, now.month, 1);
       final end = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
       return (start, end);
@@ -50,14 +51,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exchangeRate = ref.watch(exchangeRateProvider);
     final billsAsync = ref.watch(allBillsStreamProvider);
+    final workerPaymentsAsync = ref.watch(allWorkerPaymentsStreamProvider);
     final (rangeStart, rangeEnd) = _getDateRange(_period);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppNavigationDrawer(currentLocation: '/reports'),
-      appBar: AppHeader(title: 'Reports & Analytics'),
+      appBar: AppHeader(title: context.translate('reports_analytics')),
       body: ListView(
         padding: const EdgeInsets.all(AppDimensions.containerMargin),
         children: [
@@ -70,7 +71,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              '${DateFormat('MMM d, yyyy').format(rangeStart)} - ${DateFormat('MMM d, yyyy').format(rangeEnd)}',
+              '${context.translate('range')}: ${DateFormat('MMM d, yyyy').format(rangeStart)} - ${DateFormat('MMM d, yyyy').format(rangeEnd)}',
               style: GoogleFonts.jetBrainsMono(
                 fontSize: 11,
                 color: AppColors.onSurfaceVariant,
@@ -124,6 +125,23 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   ? 1.0
                   : customerRevenueList.first.value;
 
+              // Calculate worker salary costs for the same range
+              final allPayments = workerPaymentsAsync.valueOrNull ?? [];
+              final rangePayments = allPayments.where((p) {
+                return p.date.isAfter(
+                      rangeStart.subtract(const Duration(seconds: 1)),
+                    ) &&
+                    p.date.isBefore(rangeEnd.add(const Duration(seconds: 1)));
+              });
+              final salaryCost = rangePayments
+                  .where((p) => p.type == 'salary')
+                  .fold(0.0, (sum, p) => sum + p.amount);
+              final loanAdvances = rangePayments
+                  .where((p) => p.type == 'loan_advance')
+                  .fold(0.0, (sum, p) => sum + p.amount);
+              final totalWorkerCost = salaryCost + loanAdvances;
+              final netProfit = totalRevenue - totalWorkerCost;
+
               return Column(
                 children: [
                   // Summary cards
@@ -136,34 +154,34 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
                       MetricCard(
-                        label: 'Total Revenue',
-                        value: CurrencyFormatter.formatUSD(totalRevenue),
-                        unit: '',
-                        icon: Icons.account_balance_wallet_outlined,
-                        iconColor: AppColors.paid,
-                        iconBg: AppColors.paidContainer,
+                        label: context.translate('total_revenue'),
+                        value: CurrencyFormatter.formatSYP(totalRevenue),
                       ),
                       MetricCard(
-                        label: 'Invoices Issued',
+                        label: context.translate('invoices_issued'),
                         value: '${customerBills.length}',
                         icon: Icons.receipt_long_outlined,
                         iconColor: AppColors.primary,
                         iconBg: AppColors.secondaryContainer,
                       ),
                       MetricCard(
-                        label: 'Paid Invoices',
+                        label: context.translate('paid_invoices'),
                         value: '$paidCount',
                         icon: Icons.check_circle_outline,
                         iconColor: AppColors.secondary,
                         iconBg: AppColors.surfaceContainer,
                       ),
                       MetricCard(
-                        label: 'Outstanding',
-                        value: CurrencyFormatter.formatUSD(totalUnpaid),
-                        unit: '',
-                        icon: Icons.pending_actions_outlined,
-                        iconColor: AppColors.unpaid,
-                        iconBg: AppColors.unpaidContainer,
+                        label: context.translate('outstanding'),
+                        value: CurrencyFormatter.formatSYP(totalUnpaid),
+                      ),
+                      MetricCard(
+                        label: context.translate('worker_salary_costs'),
+                        value: CurrencyFormatter.formatSYP(salaryCost),
+                      ),
+                      MetricCard(
+                        label: context.translate('net_profit_after_staff'),
+                        value: CurrencyFormatter.formatSYP(netProfit),
                       ),
                     ],
                   ),
@@ -176,7 +194,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Revenue by Customer',
+                          context.translate('revenue_by_customer'),
                           style: GoogleFonts.manrope(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -188,7 +206,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
-                              'No bills recorded for selected period.',
+                              context.translate('no_bills_recorded_for_period'),
                               style: GoogleFonts.manrope(
                                 fontSize: 12,
                                 color: AppColors.outline,
@@ -200,7 +218,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             label: entry.key,
                             amount: entry.value,
                             max: maxRev <= 0 ? 1.0 : maxRev,
-                            exchangeRate: exchangeRate,
                           ),
                         ),
                       ],
@@ -212,7 +229,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Custom Bill Expenses',
+                          context.translate('custom_bill_expenses'),
                           style: GoogleFonts.manrope(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -224,7 +241,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
-                              'No custom bills recorded for selected period.',
+                              context.translate(
+                                'no_custom_bills_recorded_for_period',
+                              ),
                               style: GoogleFonts.manrope(
                                 fontSize: 12,
                                 color: AppColors.outline,
@@ -238,10 +257,72 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             max: customCategoryList.first.value <= 0
                                 ? 1.0
                                 : customCategoryList.first.value,
-                            exchangeRate: exchangeRate,
                             color: AppColors.secondary,
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppDimensions.lg),
+
+                  // Worker Salary Breakdown
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.engineering_outlined,
+                              size: 18,
+                              color: AppColors.partial,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              context.translate('worker_salary_costs'),
+                              style: GoogleFonts.manrope(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          context.translate('salary_disbursements_and_loans'),
+                          style: GoogleFonts.manrope(
+                            fontSize: 12,
+                            color: AppColors.outline,
+                          ),
+                        ),
+                        const SizedBox(height: AppDimensions.md),
+                        if (totalWorkerCost <= 0)
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              context.translate('no_worker_payments'),
+                              style: GoogleFonts.manrope(
+                                fontSize: 12,
+                                color: AppColors.outline,
+                              ),
+                            ),
+                          )
+                        else ...[
+                          _RevenueBar(
+                            label: context.translate('salary_paid'),
+                            amount: salaryCost,
+                            max: totalWorkerCost <= 0 ? 1.0 : totalWorkerCost,
+                            color: AppColors.partial,
+                          ),
+                          if (loanAdvances > 0)
+                            _RevenueBar(
+                              label: context.translate('loan_advances'),
+                              amount: loanAdvances,
+                              max: totalWorkerCost <= 0 ? 1.0 : totalWorkerCost,
+                              color: AppColors.error,
+                            ),
+                        ],
                       ],
                     ),
                   ),
@@ -250,7 +331,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, s) => Text(
-              'Error loading reports: $err',
+              context
+                  .translate('error_loading_reports')
+                  .replaceAll('{error}', '$err'),
               style: GoogleFonts.manrope(color: AppColors.error),
             ),
           ),
@@ -268,10 +351,10 @@ class _PeriodSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final periods = [
-      'Today (Daily)',
-      'This Week (Sat-Fri)',
-      'This Month',
-      'This Year',
+      'today_daily',
+      'this_week_sat_fri',
+      'this_month',
+      'this_year',
     ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -294,7 +377,7 @@ class _PeriodSelector extends StatelessWidget {
                 ),
               ),
               child: Text(
-                p,
+                context.translate(p),
                 style: GoogleFonts.manrope(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -313,13 +396,12 @@ class _RevenueBar extends StatelessWidget {
   final String label;
   final double amount;
   final double max;
-  final double exchangeRate;
+
   final Color color;
   const _RevenueBar({
     required this.label,
     required this.amount,
     required this.max,
-    required this.exchangeRate,
     this.color = AppColors.primary,
   });
 
@@ -340,14 +422,7 @@ class _RevenueBar extends StatelessWidget {
                   color: AppColors.onSurface,
                 ),
               ),
-              Text(
-                CurrencyFormatter.formatUSD(amount),
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
+              Text(CurrencyFormatter.formatSYP(amount)),
             ],
           ),
           const SizedBox(height: 6),

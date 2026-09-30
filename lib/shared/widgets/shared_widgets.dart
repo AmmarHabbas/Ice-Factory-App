@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 
 // ─── App Card ────────────────────────────────────────────────────────────────
 class AppCard extends StatelessWidget {
@@ -9,12 +10,7 @@ class AppCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
 
-  const AppCard({
-    super.key,
-    required this.child,
-    this.padding,
-    this.onTap,
-  });
+  const AppCard({super.key, required this.child, this.padding, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +59,7 @@ class StatusChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
         ),
         child: Text(
-          label!.toUpperCase(),
+          _localizedStatus(context, label!),
           style: GoogleFonts.jetBrainsMono(
             fontSize: 9,
             fontWeight: FontWeight.bold,
@@ -75,19 +71,20 @@ class StatusChip extends StatelessWidget {
     }
 
     final st = status ?? 'pending';
-    final (computedColor, computedBg, computedLabel) = switch (st.toLowerCase()) {
+    final (computedColor, computedBg, computedLabel) = switch (st
+        .toLowerCase()) {
       'paid' || 'completed' => (
-          AppColors.paid,
-          AppColors.paidContainer,
-          st.toLowerCase() == 'paid' ? 'Paid' : 'Completed'
-        ),
+        AppColors.paid,
+        AppColors.paidContainer,
+        st.toLowerCase() == 'paid' ? 'Paid' : 'Completed',
+      ),
       'partial' => (AppColors.partial, AppColors.partialContainer, 'Partial'),
       'unpaid' => (AppColors.unpaid, AppColors.unpaidContainer, 'Unpaid'),
       'in_progress' || 'in progress' => (
-          AppColors.primary,
-          AppColors.secondaryContainer,
-          'In Progress'
-        ),
+        AppColors.primary,
+        AppColors.secondaryContainer,
+        'In Progress',
+      ),
       _ => (AppColors.pending, AppColors.pendingContainer, 'Pending'),
     };
 
@@ -98,7 +95,7 @@ class StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
       ),
       child: Text(
-        (label ?? computedLabel).toUpperCase(),
+        _localizedStatus(context, label ?? computedLabel),
         style: GoogleFonts.jetBrainsMono(
           fontSize: 9,
           fontWeight: FontWeight.bold,
@@ -107,6 +104,11 @@ class StatusChip extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _localizedStatus(BuildContext context, String value) {
+    final key = value.toLowerCase().replaceAll(' ', '_');
+    return context.translate(key).toUpperCase();
   }
 }
 
@@ -137,8 +139,7 @@ class MetricCard extends StatelessWidget {
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8),
         ],
       ),
       child: Column(
@@ -152,7 +153,9 @@ class MetricCard extends StatelessWidget {
                 child: Text(
                   label,
                   style: GoogleFonts.jetBrainsMono(
-                      fontSize: 10, color: AppColors.onSurfaceVariant),
+                    fontSize: 10,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -161,8 +164,10 @@ class MetricCard extends StatelessWidget {
                 Container(
                   width: 28,
                   height: 28,
-                  decoration:
-                      BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    shape: BoxShape.circle,
+                  ),
                   child: Icon(icon, size: 14, color: iconColor),
                 ),
             ],
@@ -184,7 +189,9 @@ class MetricCard extends StatelessWidget {
                 Text(
                   unit!,
                   style: GoogleFonts.jetBrainsMono(
-                      fontSize: 10, color: AppColors.onSurfaceVariant),
+                    fontSize: 10,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                 ),
               ],
             ],
@@ -235,8 +242,11 @@ class SectionHeader extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                 ),
-                const Icon(Icons.arrow_forward,
-                    size: 14, color: AppColors.primary),
+                const Icon(
+                  Icons.arrow_forward,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
               ],
             ),
           ),
@@ -272,12 +282,19 @@ class AppSearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: GoogleFonts.manrope(
-              fontSize: 14, color: AppColors.onSurfaceVariant),
-          prefixIcon:
-              const Icon(Icons.search, size: 20, color: AppColors.outline),
+            fontSize: 14,
+            color: AppColors.onSurfaceVariant,
+          ),
+          prefixIcon: const Icon(
+            Icons.search,
+            size: 20,
+            color: AppColors.outline,
+          ),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -302,7 +319,8 @@ class FilterChipRow extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.containerMargin),
+        horizontal: AppDimensions.containerMargin,
+      ),
       child: Row(
         children: chips.map((chip) {
           final isSelected = selected == chip;
@@ -320,8 +338,7 @@ class FilterChipRow extends StatelessWidget {
               selectedColor: AppColors.primary,
               backgroundColor: AppColors.surfaceContainer,
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusFull),
+                borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
                 side: BorderSide(
                   color: isSelected
                       ? AppColors.primary

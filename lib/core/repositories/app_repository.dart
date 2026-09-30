@@ -321,6 +321,7 @@ class TripRepository {
 // --- ICE INVENTORY REPOSITORY ---
 class IceInventorySnapshot {
   final DateTime date;
+  final double openingBalance;
   final double totalAdded;
   final double totalSold;
   final double available;
@@ -328,6 +329,7 @@ class IceInventorySnapshot {
 
   IceInventorySnapshot({
     required this.date,
+    required this.openingBalance,
     required this.totalAdded,
     required this.totalSold,
     required this.available,
@@ -361,6 +363,14 @@ class IceInventoryRepository {
 
     return Stream.multi((multi) {
       Future<void> emitSnapshot() async {
+        final previousEntries = await (db.select(
+          db.iceInventoryEntries,
+        )..where((entry) => entry.date.isSmallerThanValue(startOfDay))).get();
+        final previousBills =
+            await (db.select(db.bills)..where(
+                  (bill) => bill.issueDate.isSmallerThanValue(startOfDay),
+                ))
+                .get();
         final entries =
             await (db.select(db.iceInventoryEntries)
                   ..where(
@@ -382,7 +392,18 @@ class IceInventoryRepository {
                   ..orderBy([(bill) => OrderingTerm.asc(bill.issueDate)]))
                 .get();
 
-        final snapshot = await _buildInventorySnapshot(date, entries, bills);
+        final openingBalance =
+            previousEntries.fold<double>(
+              0,
+              (sum, entry) => sum + entry.amountKg,
+            ) -
+            await _calculateTotalSold(previousBills);
+        final snapshot = await _buildInventorySnapshot(
+          date,
+          entries,
+          bills,
+          openingBalance,
+        );
         multi.add(snapshot);
       }
 
@@ -404,6 +425,7 @@ class IceInventoryRepository {
     DateTime date,
     List<IceInventoryEntry> entries,
     List<Bill> bills,
+    double openingBalance,
   ) async {
     double totalSold = 0.0;
     final adjustments = <IceInventoryAdjustment>[];
@@ -447,17 +469,32 @@ class IceInventoryRepository {
       0.0,
       (sum, item) => sum + item.amountKg,
     );
-    final available = totalAdded - totalSold;
+    final available = openingBalance + totalAdded - totalSold;
 
     adjustments.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     return IceInventorySnapshot(
       date: date,
+      openingBalance: openingBalance,
       totalAdded: totalAdded,
       totalSold: totalSold,
       available: available,
       adjustments: adjustments,
     );
+  }
+
+  Future<double> _calculateTotalSold(List<Bill> bills) async {
+    double totalSold = 0.0;
+    for (final bill in bills) {
+      if (bill.isCustom) continue;
+      final items = await (db.select(
+        db.billItems,
+      )..where((item) => item.billId.equals(bill.id))).get();
+      for (final item in items) {
+        totalSold += calculateBillItemKg(item.productName, item.quantity);
+      }
+    }
+    return totalSold;
   }
 
   Future<void> addIceInventory({
@@ -544,6 +581,123 @@ class ExpenseRepository {
 
   Future<int> addExpense(Expense expense) =>
       db.into(db.expenses).insert(expense);
+}
+
+// --- WORKERS REPOSITORY ---
+class WorkerRepository {
+  final AppDatabase db;
+  WorkerRepository(this.db);
+
+  Stream<List<Worker>> watchAllWorkers() => (db.select(
+    db.workers,
+  )..orderBy([(w) => OrderingTerm.asc(w.firstName)])).watch();
+
+  Future<List<Worker>> getAllWorkers() => db.select(db.workers).get();
+
+  Future<Worker?> getWorkerById(String id) =>
+      (db.select(db.workers)..where((w) => w.id.equals(id))).getSingleOrNull();
+
+  Future<void> addWorker(Worker worker) async {
+    await db.into(db.workers).insert(worker, mode: InsertMode.insertOrReplace);
+  }
+
+  Future<void> updateWorker(Worker worker) async {
+    await db.update(db.workers).replace(worker);
+  }
+
+  Future<void> deleteWorker(String id) async {
+    await (db.delete(db.workers)..where((w) => w.id.equals(id))).go();
+  }
+
+  Stream<List<WorkerPayment>> watchPaymentsForWorker(String workerId) =>
+      (db.select(db.workerPayments)
+            ..where((p) => p.workerId.equals(workerId))
+            ..orderBy([(p) => OrderingTerm.desc(p.date)]))
+          .watch();
+
+  Stream<List<WorkerPayment>> watchAllPayments() => (db.select(
+    db.workerPayments,
+  )..orderBy([(p) => OrderingTerm.desc(p.date)])).watch();
+
+  /// Records a salary payment and reduces loanBalance if type is loan_repayment.
+  Future<void> addPayment(WorkerPayment payment) async {
+    await db.transaction(() async {
+      await db.into(db.workerPayments).insert(payment);
+
+      if (payment.type == 'loan_advance') {
+        final worker = await getWorkerById(payment.workerId);
+        if (worker != null) {
+          await db
+              .update(db.workers)
+              .replace(
+                worker.copyWith(
+                  loanBalance: worker.loanBalance + payment.amount,
+                ),
+              );
+        }
+      } else if (payment.type == 'loan_repayment') {
+        final worker = await getWorkerById(payment.workerId);
+        if (worker != null) {
+          final newBalance = worker.loanBalance - payment.amount;
+          await db
+              .update(db.workers)
+              .replace(
+                worker.copyWith(loanBalance: newBalance < 0 ? 0.0 : newBalance),
+              );
+        }
+      }
+    });
+  }
+
+  /// Total salary costs paid in a date range (type: salary).
+  Future<double> totalSalaryCostForRange(
+    DateTime rangeStart,
+    DateTime rangeEnd,
+  ) async {
+    final payments =
+        await (db.select(db.workerPayments)..where(
+              (p) =>
+                  p.type.equals('salary') &
+                  p.date.isBiggerOrEqualValue(rangeStart) &
+                  p.date.isSmallerOrEqualValue(rangeEnd),
+            ))
+            .get();
+    return payments.fold<double>(0.0, (sum, p) => sum + p.amount);
+  }
+
+  /// Stream of total salary + loan_advance disbursed today.
+  Stream<double> watchTodayWorkerCosts() {
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+    return (db.select(db.workerPayments)..where(
+          (p) =>
+              p.date.isBetweenValues(startOfDay, endOfDay) &
+              (p.type.equals('salary') | p.type.equals('loan_advance')),
+        ))
+        .watch()
+        .map((list) => list.fold<double>(0.0, (sum, p) => sum + p.amount));
+  }
+
+  /// Stream of all salary/loan disbursements in a range.
+  Stream<List<WorkerPayment>> watchPaymentsForRange(
+    DateTime rangeStart,
+    DateTime rangeEnd,
+  ) =>
+      (db.select(db.workerPayments)
+            ..where(
+              (p) =>
+                  p.date.isBiggerOrEqualValue(rangeStart) &
+                  p.date.isSmallerOrEqualValue(rangeEnd),
+            )
+            ..orderBy([(p) => OrderingTerm.desc(p.date)]))
+          .watch();
+
+  /// Total active loan debt across all workers.
+  Stream<double> watchTotalLoanBalance() => db
+      .select(db.workers)
+      .watch()
+      .map((list) => list.fold(0.0, (sum, w) => sum + w.loanBalance));
 }
 
 // --- NOTIFICATIONS REPOSITORY ---

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/database/app_database.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
@@ -20,7 +21,7 @@ class CustomerDirectoryScreen extends ConsumerStatefulWidget {
 
 class _CustomerDirectoryScreenState
     extends ConsumerState<CustomerDirectoryScreen> {
-  String _filter = 'All';
+  String _filter = 'all';
   final _searchCtrl = TextEditingController();
   String _query = '';
 
@@ -33,13 +34,18 @@ class _CustomerDirectoryScreenState
   @override
   Widget build(BuildContext context) {
     final customersAsync = ref.watch(allCustomersStreamProvider);
-    final exchangeRate = ref.watch(exchangeRateProvider);
+    final filterLabels = {
+      'all': context.translate('all'),
+      'with_debt': context.translate('with_debt'),
+      'active': context.translate('active'),
+      'new': context.translate('new'),
+    };
 
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppNavigationDrawer(currentLocation: '/customers'),
       appBar: AppHeader(
-        title: 'Customer Directory',
+        title: context.translate('customer_directory'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: AppColors.primary),
@@ -51,33 +57,45 @@ class _CustomerDirectoryScreenState
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppDimensions.containerMargin,
-                AppDimensions.md,
-                AppDimensions.containerMargin,
-                AppDimensions.sm),
+              AppDimensions.containerMargin,
+              AppDimensions.md,
+              AppDimensions.containerMargin,
+              AppDimensions.sm,
+            ),
             child: AppSearchBar(
-              hint: 'Search by name, phone, or address...',
+              hint: context.translate('search_customer_details'),
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _query = v),
             ),
           ),
           FilterChipRow(
-            chips: const ['All', 'With Debt', 'Active', 'New'],
-            selected: _filter,
-            onSelected: (v) => setState(() => _filter = v),
+            chips: filterLabels.values.toList(),
+            selected: filterLabels[_filter]!,
+            onSelected: (label) {
+              final selectedFilter = filterLabels.entries
+                  .firstWhere((entry) => entry.value == label)
+                  .key;
+              setState(() => _filter = selectedFilter);
+            },
           ),
           const SizedBox(height: AppDimensions.md),
           Expanded(
             child: customersAsync.when(
               data: (customersList) {
                 final filtered = customersList.where((c) {
+                  final category = c.category.toLowerCase();
                   final matchCat = switch (_filter) {
-                    'With Debt' => c.outstandingBalance > 0,
-                    'Active' => c.category == 'active',
-                    'New' => c.category == 'new',
+                    'with_debt' => c.outstandingBalance > 0,
+                    'active' =>
+                      category == 'active' ||
+                          category == context.translate('active').toLowerCase(),
+                    'new' =>
+                      category == 'new' ||
+                          category == context.translate('new').toLowerCase(),
                     _ => true,
                   };
-                  final matchQ = _query.isEmpty ||
+                  final matchQ =
+                      _query.isEmpty ||
                       c.name.toLowerCase().contains(_query.toLowerCase()) ||
                       c.phone.toLowerCase().contains(_query.toLowerCase()) ||
                       c.address.toLowerCase().contains(_query.toLowerCase());
@@ -85,10 +103,10 @@ class _CustomerDirectoryScreenState
                 }).toList();
 
                 if (filtered.isEmpty) {
-                  return const EmptyStateWidget(
+                  return EmptyStateWidget(
                     icon: Icons.person_search_outlined,
-                    title: 'No Customers Found',
-                    subtitle: 'Tap + above to add a new customer',
+                    title: context.translate('no_customers'),
+                    subtitle: context.translate('add_customer_hint'),
                   );
                 }
 
@@ -100,18 +118,19 @@ class _CustomerDirectoryScreenState
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.containerMargin),
+                        horizontal: AppDimensions.containerMargin,
+                      ),
                       child: Row(
                         children: [
                           _StatMiniCard(
-                            title: 'Total Customers',
+                            title: context.translate('total_customers'),
                             value: '${customersList.length}',
                             icon: Icons.people_outline,
                             color: AppColors.primary,
                           ),
                           const SizedBox(width: AppDimensions.md),
                           _StatMiniCard(
-                            title: 'With Debt',
+                            title: context.translate('with_debt'),
                             value: '$totalWithDebt',
                             icon: Icons.warning_amber_rounded,
                             color: AppColors.unpaid,
@@ -123,25 +142,24 @@ class _CustomerDirectoryScreenState
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.containerMargin),
+                          horizontal: AppDimensions.containerMargin,
+                        ),
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
                           final customer = filtered[index];
-                          return _CustomerCard(
-                            customer: customer,
-                            exchangeRate: exchangeRate,
-                          );
+                          return _CustomerCard(customer: customer);
                         },
                       ),
                     ),
                   ],
                 );
               },
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, stack) => Center(
-                child: Text('Error loading customers: $err',
-                    style: GoogleFonts.manrope(color: AppColors.error)),
+                child: Text(
+                  'Error loading customers: $err',
+                  style: GoogleFonts.manrope(color: AppColors.error),
+                ),
               ),
             ),
           ),
@@ -156,11 +174,12 @@ class _StatMiniCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
-  const _StatMiniCard(
-      {required this.title,
-      required this.value,
-      required this.icon,
-      required this.color});
+  const _StatMiniCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +191,9 @@ class _StatMiniCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+            ),
           ],
         ),
         child: Row(
@@ -182,14 +203,21 @@ class _StatMiniCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10, color: AppColors.onSurfaceVariant)),
-                Text(value,
-                    style: GoogleFonts.manrope(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.onSurface)),
+                Text(
+                  title,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: GoogleFonts.manrope(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                  ),
+                ),
               ],
             ),
           ],
@@ -201,9 +229,8 @@ class _StatMiniCard extends StatelessWidget {
 
 class _CustomerCard extends StatelessWidget {
   final Customer customer;
-  final double exchangeRate;
-  const _CustomerCard(
-      {required this.customer, required this.exchangeRate});
+
+  const _CustomerCard({required this.customer});
 
   @override
   Widget build(BuildContext context) {
@@ -215,13 +242,14 @@ class _CustomerCard extends StatelessWidget {
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8),
         ],
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.md, vertical: 6),
+          horizontal: AppDimensions.md,
+          vertical: 6,
+        ),
         leading: Container(
           width: 44,
           height: 44,
@@ -237,20 +265,31 @@ class _CustomerCard extends StatelessWidget {
             size: 22,
           ),
         ),
-        title: Text(customer.name,
-            style: GoogleFonts.manrope(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface)),
+        title: Text(
+          customer.name,
+          style: GoogleFonts.manrope(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.onSurface,
+          ),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(customer.phone,
-                style: GoogleFonts.jetBrainsMono(
-                    fontSize: 11, color: AppColors.onSurfaceVariant)),
-            Text(customer.address,
-                style: GoogleFonts.manrope(
-                    fontSize: 11, color: AppColors.outline)),
+            Text(
+              customer.phone,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 11,
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            Text(
+              customer.address,
+              style: GoogleFonts.manrope(
+                fontSize: 11,
+                color: AppColors.outline,
+              ),
+            ),
           ],
         ),
         trailing: Column(
@@ -258,22 +297,22 @@ class _CustomerCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (hasDebt) ...[
+              Text(CurrencyFormatter.formatSYP(customer.outstandingBalance)),
               Text(
-                CurrencyFormatter.formatUSD(customer.outstandingBalance),
-                style: GoogleFonts.jetBrainsMono(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.unpaid),
-              ),
-              Text(
-                'Due Balance',
+                context.translate('due_balance'),
                 style: GoogleFonts.manrope(
-                    fontSize: 9, color: AppColors.unpaid),
+                  fontSize: 9,
+                  color: AppColors.unpaid,
+                ),
               ),
             ] else ...[
-              Text('Clean',
-                  style: GoogleFonts.jetBrainsMono(
-                      fontSize: 11, color: AppColors.paid)),
+              Text(
+                context.translate('clean'),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 11,
+                  color: AppColors.paid,
+                ),
+              ),
             ],
           ],
         ),

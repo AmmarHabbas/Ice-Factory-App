@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/repositories/app_repository.dart';
 import '../../shared/widgets/main_shell.dart';
@@ -54,9 +55,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
     final amount = double.tryParse(text);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid ice quantity in kg'),
-        ),
+        SnackBar(content: Text(context.translate('valid_ice_quantity'))),
       );
       return;
     }
@@ -68,16 +67,18 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
           .addIceInventory(
             amountKg: amount,
             date: _selectedDate,
-            notes: 'Production Batch Addition',
+            notes: '${context.translate('production_batch_addition')}',
           );
       _addAmountCtrl.clear();
       if (mounted) {
         FocusScope.of(context).unfocus();
+        final addedMessage = context
+            .translate('added_ice_to_date')
+            .replaceAll('{amount}', amount.toStringAsFixed(0))
+            .replaceAll('{date}', DateFormat('MMM d').format(_selectedDate));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Added ${amount.toStringAsFixed(0)} kg ice to ${DateFormat('MMM d').format(_selectedDate)}',
-            ),
+            content: Text(addedMessage),
             backgroundColor: AppColors.paid,
           ),
         );
@@ -86,7 +87,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add ice: $e'),
+            content: Text('${context.translate('failed_add_ice')}: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -107,31 +108,40 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
     final shouldSave = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Edit Inventory Entry'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: amountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+        title: Text(context.translate('edit_inventory_entry')),
+        content: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText:
+                      '${context.translate('amount')} (${context.translate('kg')})',
+                ),
               ),
-              decoration: const InputDecoration(labelText: 'Amount (kg)'),
-            ),
-            TextField(
-              controller: notesController,
-              decoration: const InputDecoration(labelText: 'Notes'),
-            ),
-          ],
+              SizedBox(height: 15),
+              TextField(
+                controller: notesController,
+                decoration: InputDecoration(
+                  labelText: '${context.translate('notes')}',
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(context.translate('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Save'),
+            child: Text(context.translate('save')),
           ),
         ],
       ),
@@ -158,18 +168,18 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Inventory Entry?'),
+        title: Text(context.translate('delete_inventory_entry')),
         content: Text(
-          '${adjustment.amountKg.toStringAsFixed(0)} kg will be removed from this day.',
+          '${adjustment.amountKg.toStringAsFixed(0)} ${context.translate('kg')} ${context.translate('will_be_removed_from_this_day')}.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(context.translate('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: Text(context.translate('delete')),
           ),
         ],
       ),
@@ -195,11 +205,11 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
       backgroundColor: AppColors.surface,
       drawer: const AppNavigationDrawer(currentLocation: '/ice-inventory'),
       appBar: AppHeader(
-        title: 'Ice Inventory',
+        title: context.translate('ice_inventory'),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month, color: AppColors.primary),
-            tooltip: 'Choose Date',
+            tooltip: context.translate('choose_date'),
             onPressed: _pickCustomDate,
           ),
         ],
@@ -240,7 +250,9 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error loading inventory: $e')),
+        error: (e, s) => Center(
+          child: Text('${context.translate('error_loading_inventory')}: $e'),
+        ),
       ),
     );
   }
@@ -268,7 +280,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                 borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
               ),
               child: Text(
-                'Yesterday',
+                context.translate('yesterday'),
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -290,7 +302,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                 borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
               ),
               child: Text(
-                'Today',
+                context.translate('today'),
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -359,7 +371,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Add Inventory',
+                    context.translate('add_inventory'),
                     style: GoogleFonts.manrope(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -368,7 +380,12 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Update total available ice for ${DateFormat('MMM d').format(_selectedDate)}',
+                    context
+                        .translate('update_total_available_ice_for')
+                        .replaceAll(
+                          '{date}',
+                          DateFormat('MMM d').format(_selectedDate),
+                        ),
                     style: GoogleFonts.manrope(
                       fontSize: 12,
                       color: AppColors.onSurfaceVariant,
@@ -409,7 +426,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: Row(
                     children: [
                       Expanded(
@@ -422,19 +439,21 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                             color: AppColors.onSurface,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'Enter amount (e.g. 100)',
+                            hintText: context.translate(
+                              'enter_amount_placeholder',
+                            ),
                             hintStyle: GoogleFonts.manrope(
                               color: AppColors.outline,
                               fontSize: 13,
                             ),
                             border: InputBorder.none,
-                            isCollapsed: true,
+                            isCollapsed: false,
                           ),
                           onSubmitted: (_) => _handleAddIce(),
                         ),
                       ),
                       Text(
-                        'kg',
+                        context.translate('kg'),
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -460,7 +479,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                           ),
                         )
                       : const Icon(Icons.add, size: 18),
-                  label: const Text('Add Ice'),
+                  label: Text(context.translate('add_ice')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -509,7 +528,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Available Ice Stock',
+                    context.translate('available_ice_stock'),
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -534,7 +553,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'kg',
+                    context.translate('kg'),
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -543,6 +562,21 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                   ),
                 ],
               ),
+              if (snapshot.openingBalance > 0) ...[
+                const SizedBox(height: 4),
+                Text(
+                  context
+                      .translate('carried_over_from_previous_days')
+                      .replaceAll(
+                        '{amount}',
+                        snapshot.openingBalance.toStringAsFixed(0),
+                      ),
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 11,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -574,7 +608,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Total Added',
+                          context.translate('total_added'),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -598,7 +632,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          'kg',
+                          context.translate('kg'),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 12,
                             color: AppColors.onSurfaceVariant,
@@ -633,7 +667,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Total Sold',
+                          context.translate('total_sold'),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -657,7 +691,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          'kg',
+                          context.translate('kg'),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 12,
                             color: AppColors.onSurfaceVariant,
@@ -676,7 +710,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
   }
 
   Widget _buildInventoryStatusRing(IceInventorySnapshot snapshot) {
-    final total = snapshot.totalAdded;
+    final total = snapshot.openingBalance + snapshot.totalAdded;
     final sold = snapshot.totalSold;
     final ratio = total > 0 ? (sold / total).clamp(0.0, 1.0) : 0.0;
     final percentage = (ratio * 100).toStringAsFixed(1);
@@ -694,7 +728,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Inventory Status',
+            context.translate('inventory_status'),
             style: GoogleFonts.manrope(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -729,7 +763,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                         ),
                       ),
                       Text(
-                        'Sold',
+                        context.translate('sold'),
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -754,7 +788,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(
-            'Recent Adjustments',
+            context.translate('recent_adjustments'),
             style: GoogleFonts.manrope(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -772,7 +806,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
               borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
             ),
             child: Text(
-              'No adjustments logged for this date.',
+              context.translate('no_adjustments_logged'),
               style: GoogleFonts.manrope(
                 fontSize: 13,
                 color: AppColors.onSurfaceVariant,
@@ -807,7 +841,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                     children: [
                       if (isAdd)
                         PopupMenuButton<String>(
-                          tooltip: 'Manage inventory entry',
+                          tooltip: context.translate('manage_inventory_entry'),
                           onSelected: (action) {
                             if (action == 'edit') {
                               _editInventoryEntry(adj);
@@ -815,11 +849,14 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                               _deleteInventoryEntry(adj);
                             }
                           },
-                          itemBuilder: (_) => const [
-                            PopupMenuItem(value: 'edit', child: Text('Edit')),
+                          itemBuilder: (_) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Text(context.translate('edit')),
+                            ),
                             PopupMenuItem(
                               value: 'delete',
-                              child: Text('Delete'),
+                              child: Text(context.translate('delete')),
                             ),
                           ],
                         ),
@@ -877,7 +914,7 @@ class _IceInventoryScreenState extends ConsumerState<IceInventoryScreen> {
                           ),
                         ),
                         child: Text(
-                          '${isAdd ? '+' : '-'} ${adj.amountKg.toStringAsFixed(0)} kg',
+                          '${isAdd ? '+' : '-'} ${adj.amountKg.toStringAsFixed(0)} ${context.translate('kg')}',
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,

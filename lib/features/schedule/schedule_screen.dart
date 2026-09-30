@@ -6,8 +6,8 @@ import 'package:ice_cube_app/features/schedule/trip_detail_screen.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/database/app_database.dart';
-import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../shared/widgets/main_shell.dart';
 import '../../shared/widgets/shared_widgets.dart';
@@ -37,7 +37,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exchangeRate = ref.watch(exchangeRateProvider);
     final tripsAsync = ref
         .watch(tripRepositoryProvider)
         .watchTripsForDate(_selectedDate);
@@ -54,21 +53,21 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add, size: 20),
         label: Text(
-          'New Trip',
-          style: GoogleFonts.manrope(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          context.translate('new_trip'),
+          style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
       backgroundColor: AppColors.background,
       drawer: const AppNavigationDrawer(currentLocation: '/schedule'),
       appBar: AppHeader(
-        title: "Today's Schedule",
+        title: context.translate('todays_schedule'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_month_outlined, color: AppColors.primary),
-            tooltip: 'Pick Date',
+            icon: const Icon(
+              Icons.calendar_month_outlined,
+              color: AppColors.primary,
+            ),
+            tooltip: context.translate('pick_date'),
             onPressed: _pickCalendarDate,
           ),
         ],
@@ -86,7 +85,12 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
 
           // Filter chips
           FilterChipRow(
-            chips: const ['All', 'Pending', 'In Progress', 'Completed'],
+            chips: [
+              context.translate('all'),
+              context.translate('pending'),
+              context.translate('in_progress'),
+              context.translate('completed'),
+            ],
             selected: _filter,
             onSelected: (v) => setState(() => _filter = v),
           ),
@@ -106,18 +110,19 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 if (filtered.isEmpty) {
                   return EmptyStateWidget(
                     icon: Icons.event_note_outlined,
-                    title: 'No Trips Scheduled',
-                    subtitle:
-                        'No delivery trips found for ${DateFormat('EEE, MMM d, yyyy').format(_selectedDate)}. Tap "+ New Trip" to schedule one.',
+                    title: context.translate('no_trips_scheduled'),
+                    subtitle: context
+                        .translate('no_delivery_trips_found')
+                        .replaceAll(
+                          '{date}',
+                          DateFormat('EEE, MMM d, yyyy').format(_selectedDate),
+                        ),
                   );
                 }
 
                 return Column(
                   children: [
-                    _DaySummaryBanner(
-                      trips: filtered,
-                      exchangeRate: exchangeRate,
-                    ),
+                    _DaySummaryBanner(trips: filtered),
                     const SizedBox(height: AppDimensions.md),
                     Expanded(
                       child: ListView.builder(
@@ -131,7 +136,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                         itemBuilder: (ctx, i) => _TripTimelineCard(
                           trip: filtered[i],
                           isLast: i == filtered.length - 1,
-                          exchangeRate: exchangeRate,
                         ),
                       ),
                     ),
@@ -176,8 +180,11 @@ class _DateStripState extends State<_DateStrip> {
     final centerDate = widget.selectedDate;
     _days = List.generate(
       21,
-      (i) => DateTime(centerDate.year, centerDate.month, centerDate.day)
-          .add(Duration(days: i - 10)),
+      (i) => DateTime(
+        centerDate.year,
+        centerDate.month,
+        centerDate.day,
+      ).add(Duration(days: i - 10)),
     );
   }
 
@@ -185,8 +192,7 @@ class _DateStripState extends State<_DateStrip> {
   void didUpdateWidget(covariant _DateStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_isSameDay(oldWidget.selectedDate, widget.selectedDate)) {
-      final index =
-          _days.indexWhere((d) => _isSameDay(d, widget.selectedDate));
+      final index = _days.indexWhere((d) => _isSameDay(d, widget.selectedDate));
       if (index == -1) {
         setState(() {
           _generateDays();
@@ -258,9 +264,12 @@ class _DateStripState extends State<_DateStrip> {
                     margin: const EdgeInsets.only(right: AppDimensions.sm),
                     width: _itemWidth,
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusMedium),
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusMedium,
+                      ),
                       border: isToday && !isSelected
                           ? Border.all(color: AppColors.primary, width: 1.5)
                           : null,
@@ -305,8 +314,12 @@ class _DateStripState extends State<_DateStrip> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.calendar_month, color: AppColors.primary, size: 22),
-            tooltip: 'Pick date',
+            icon: const Icon(
+              Icons.calendar_month,
+              color: AppColors.primary,
+              size: 22,
+            ),
+            tooltip: context.translate('pick_date'),
             onPressed: widget.onPickCalendar,
           ),
           const SizedBox(width: 8),
@@ -318,8 +331,8 @@ class _DateStripState extends State<_DateStrip> {
 
 class _DaySummaryBanner extends StatelessWidget {
   final List<Trip> trips;
-  final double exchangeRate;
-  const _DaySummaryBanner({required this.trips, required this.exchangeRate});
+
+  const _DaySummaryBanner({required this.trips});
 
   @override
   Widget build(BuildContext context) {
@@ -345,7 +358,7 @@ class _DaySummaryBanner extends StatelessWidget {
         children: [
           Expanded(
             child: _SummaryItem(
-              label: 'Trips',
+              label: context.translate('trips'),
               value: '$completed / ${trips.length}',
               icon: Icons.local_shipping_outlined,
               color: AppColors.primary,
@@ -354,7 +367,7 @@ class _DaySummaryBanner extends StatelessWidget {
           Container(width: 1, height: 40, color: AppColors.outlineVariant),
           Expanded(
             child: _SummaryItem(
-              label: 'Stops',
+              label: context.translate('stops'),
               value: '$totalStops',
               icon: Icons.inventory_2_outlined,
               color: AppColors.secondary,
@@ -407,12 +420,8 @@ class _SummaryItem extends StatelessWidget {
 class _TripTimelineCard extends StatelessWidget {
   final Trip trip;
   final bool isLast;
-  final double exchangeRate;
-  const _TripTimelineCard({
-    required this.trip,
-    required this.isLast,
-    required this.exchangeRate,
-  });
+
+  const _TripTimelineCard({required this.trip, required this.isLast});
 
   @override
   Widget build(BuildContext context) {
@@ -458,9 +467,7 @@ class _TripTimelineCard extends StatelessWidget {
           child: GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => TripDetailScreen(trip: trip),
-              ),
+              MaterialPageRoute(builder: (_) => TripDetailScreen(trip: trip)),
             ),
             child: Container(
               margin: const EdgeInsets.only(bottom: AppDimensions.sm),
@@ -498,8 +505,11 @@ class _TripTimelineCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         StatusChip(label: trip.status, color: statusColor),
                         const SizedBox(width: 4),
-                        const Icon(Icons.chevron_right,
-                            size: 16, color: AppColors.outline),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 16,
+                          color: AppColors.outline,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -514,7 +524,9 @@ class _TripTimelineCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            'Driver: ${trip.driverName}',
+                            context
+                                .translate('driver_label')
+                                .replaceAll('{driverName}', trip.driverName),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.manrope(
@@ -530,7 +542,16 @@ class _TripTimelineCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Stops: ${trip.completedStops} / ${trip.totalStops} completed',
+                          context
+                              .translate('stops_summary')
+                              .replaceAll(
+                                '{completed}',
+                                trip.completedStops.toString(),
+                              )
+                              .replaceAll(
+                                '{total}',
+                                trip.totalStops.toString(),
+                              ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.jetBrainsMono(
@@ -541,18 +562,25 @@ class _TripTimelineCard extends StatelessWidget {
                         if (trip.iceLoadKg > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColors.secondaryContainer
-                                  .withValues(alpha: 0.3),
+                              color: AppColors.secondaryContainer.withValues(
+                                alpha: 0.3,
+                              ),
                               borderRadius: BorderRadius.circular(
-                                  AppDimensions.radiusFull),
+                                AppDimensions.radiusFull,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.ac_unit,
-                                    size: 12, color: AppColors.secondary),
+                                const Icon(
+                                  Icons.ac_unit,
+                                  size: 12,
+                                  color: AppColors.secondary,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${trip.iceLoadKg.toStringAsFixed(0)} kg',

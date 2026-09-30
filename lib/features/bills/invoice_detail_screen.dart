@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/database/app_database.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
@@ -21,17 +22,19 @@ class InvoiceDetailScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Invoice?'),
-        content: Text('Invoice ${bill.id} will be permanently deleted.'),
+        title: Text(context.translate('delete_invoice')),
+        content: Text(
+          '${context.translate('invoice_delete_warning')} ${bill.id}',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(context.translate('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Delete'),
+            child: Text(context.translate('delete')),
           ),
         ],
       ),
@@ -42,15 +45,19 @@ class InvoiceDetailScreen extends ConsumerWidget {
     try {
       await ref.read(billRepositoryProvider).deleteBill(bill);
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Invoice deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.translate('invoice_deleted'))),
+        );
         Navigator.of(context).pop();
       }
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete invoice: $error')),
+          SnackBar(
+            content: Text(
+              '${context.translate('failed_delete_invoice')}: $error',
+            ),
+          ),
         );
       }
     }
@@ -60,13 +67,15 @@ class InvoiceDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (bill == null) {
       return Scaffold(
-        appBar: AppHeader(title: 'Invoice Detail', showMenuButton: false),
-        body: const Center(child: Text('No invoice selected')),
+        appBar: AppHeader(
+          title: context.translate('invoice_detail'),
+          showMenuButton: false,
+        ),
+        body: Center(child: Text(context.translate('no_invoice_selected'))),
       );
     }
 
     final b = bill!;
-    final exchangeRate = ref.watch(exchangeRateProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -132,7 +141,7 @@ class InvoiceDetailScreen extends ConsumerWidget {
                 ),
                 if (b.isCustom)
                   Text(
-                    'Custom Bill',
+                    '${context.translate('custom_bill')}',
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 12,
                       color: Colors.white70,
@@ -154,18 +163,11 @@ class InvoiceDetailScreen extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            CurrencyFormatter.formatUSD(b.total),
+                            CurrencyFormatter.formatSYP(b.total),
                             style: GoogleFonts.manrope(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            CurrencyFormatter.formatSYP(b.total, exchangeRate),
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 10,
-                              color: Colors.white70,
                             ),
                           ),
                         ],
@@ -184,10 +186,10 @@ class InvoiceDetailScreen extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            CurrencyFormatter.formatUSD(b.paidAmount),
+                            CurrencyFormatter.formatSYP(b.paidAmount),
                             style: GoogleFonts.manrope(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
                           ),
@@ -208,11 +210,11 @@ class InvoiceDetailScreen extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              CurrencyFormatter.formatUSD(b.remainingAmount),
+                              CurrencyFormatter.formatSYP(b.remainingAmount),
                               style: GoogleFonts.manrope(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFFFF6B6B),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
                           ],
@@ -241,16 +243,19 @@ class InvoiceDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppDimensions.md),
                 _InfoRow(
-                  label: 'Date',
+                  label: context.translate('date'),
                   value: b.issueDate.toString().substring(0, 10),
                 ),
-                _InfoRow(label: 'Customer', value: b.customerName),
                 _InfoRow(
-                  label: 'Type',
+                  label: context.translate('customer'),
+                  value: b.customerName,
+                ),
+                _InfoRow(
+                  label: context.translate('type'),
                   value: b.isCustom ? 'Custom Bill' : 'Ice Cube Bill',
                 ),
                 _InfoRow(
-                  label: 'Status',
+                  label: context.translate('status'),
                   valueWidget: StatusChip(
                     label: b.status.toUpperCase(),
                     color: b.status == 'paid'
@@ -310,6 +315,7 @@ class InvoiceDetailScreen extends ConsumerWidget {
                           ),
                         ),
                         Expanded(
+                          flex: 2,
                           child: Text(
                             'PRICE',
                             style: GoogleFonts.jetBrainsMono(
@@ -321,6 +327,7 @@ class InvoiceDetailScreen extends ConsumerWidget {
                           ),
                         ),
                         Expanded(
+                          flex: 2,
                           child: Text(
                             'TOTAL',
                             style: GoogleFonts.jetBrainsMono(
@@ -371,20 +378,22 @@ class InvoiceDetailScreen extends ConsumerWidget {
                               ),
                             ),
                             Expanded(
+                              flex: 2,
                               child: Text(
-                                CurrencyFormatter.formatUSD(item.unitPrice),
+                                '${item.unitPrice}',
                                 style: GoogleFonts.jetBrainsMono(
-                                  fontSize: 11,
-                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 12,
+                                  color: AppColors.onSurface,
                                 ),
                                 textAlign: TextAlign.right,
                               ),
                             ),
                             Expanded(
+                              flex: 2,
                               child: Text(
-                                CurrencyFormatter.formatUSD(item.totalPrice),
+                                CurrencyFormatter.formatSYP(item.totalPrice),
                                 style: GoogleFonts.jetBrainsMono(
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.onSurface,
                                 ),
@@ -409,10 +418,10 @@ class InvoiceDetailScreen extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          CurrencyFormatter.formatUSD(b.total),
-                          style: GoogleFonts.manrope(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                          CurrencyFormatter.formatSYP(b.total),
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                             color: AppColors.primary,
                           ),
                         ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/database/app_database.dart';
 import '../../core/providers/repository_providers.dart';
 
@@ -71,11 +72,11 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
   String get _statusString {
     switch (_selectedStatus) {
       case TripStatus.completed:
-        return 'Completed';
+        return context.translate('completed');
       case TripStatus.inProgress:
-        return 'In Progress';
+        return context.translate('in_progress');
       case TripStatus.pending:
-        return 'Pending';
+        return context.translate('pending');
     }
   }
 
@@ -83,7 +84,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
     final destination = _destinationController.text.trim();
     if (destination.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a destination / location')),
+        SnackBar(content: Text(context.translate('destination_required'))),
       );
       return;
     }
@@ -91,7 +92,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
     final iceLoad = double.tryParse(_iceLoadController.text.trim()) ?? 0.0;
     if (iceLoad <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid ice load in kg')),
+        SnackBar(content: Text(context.translate('valid_ice_load'))),
       );
       return;
     }
@@ -111,8 +112,8 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
 
       final tripId = 'TRIP-${DateTime.now().millisecondsSinceEpoch}';
       final statusStr = _statusString;
-      final isCompleted = statusStr == 'Completed';
-      final isPending = statusStr == 'Pending';
+      final isCompleted = statusStr == context.translate('completed');
+      final isPending = statusStr == context.translate('pending');
 
       final trip = Trip(
         id: tripId,
@@ -146,7 +147,9 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Trip to "$destination" created ($statusStr)'),
+            content: Text(
+              '${context.translate('trip_created')} "$destination" ${context.translate('to')} $statusStr',
+            ),
             backgroundColor: AppColors.paid,
           ),
         );
@@ -156,7 +159,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating trip: $e'),
+            content: Text('${context.translate('error_creating_trip')}: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -226,7 +229,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
         ),
         const SizedBox(width: 12),
         Text(
-          'New Trip',
+          context.translate('new_trip'),
           style: GoogleFonts.manrope(
             fontSize: 24,
             fontWeight: FontWeight.w700,
@@ -276,7 +279,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('DESTINATION / LOCATION'),
+          _sectionLabel(context.translate('destination_location')),
           const SizedBox(height: 10),
           Container(
             height: 52,
@@ -291,7 +294,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
                     controller: _destinationController,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'e.g. Al Safa Supermarket / King Fahd Rd',
+                      hintText: context.translate('destination_hint'),
                       hintStyle: GoogleFonts.manrope(
                         color: labelGrey,
                         fontSize: 14,
@@ -315,7 +318,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('DRIVER / TRUCK FLEET'),
+          _sectionLabel(context.translate('driver_truck_fleet')),
           const SizedBox(height: 10),
           Container(
             height: 52,
@@ -330,7 +333,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
                     controller: _driverController,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Driver name or Truck #',
+                      hintText: context.translate('driver_name_or_truck'),
                       hintStyle: GoogleFonts.manrope(
                         color: labelGrey,
                         fontSize: 14,
@@ -358,7 +361,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _sectionLabel('TIME'),
+                _sectionLabel(context.translate('time_label')),
                 const SizedBox(height: 10),
                 GestureDetector(
                   onTap: _pickTime,
@@ -399,7 +402,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _sectionLabel('DATE'),
+                _sectionLabel(context.translate('date_label')),
                 const SizedBox(height: 10),
                 GestureDetector(
                   onTap: _pickDate,
@@ -447,7 +450,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('ICE LOAD (KG)'),
+          _sectionLabel(context.translate('ice_load_kg')),
           const SizedBox(height: 10),
           Container(
             height: 52,
@@ -480,7 +483,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'kg',
+                  context.translate('kg'),
                   style: GoogleFonts.jetBrainsMono(
                     color: labelGrey,
                     fontSize: 14,
@@ -502,13 +505,13 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('INITIAL STATUS'),
+          _sectionLabel(context.translate('initial_status')),
           const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
                 child: _statusChip(
-                  label: 'Completed',
+                  label: context.translate('completed'),
                   icon: Icons.check_circle_outline,
                   status: TripStatus.completed,
                 ),
@@ -516,7 +519,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
               const SizedBox(width: 8),
               Expanded(
                 child: _statusChip(
-                  label: 'In Progress',
+                  label: context.translate('in_progress'),
                   icon: Icons.local_shipping_outlined,
                   status: TripStatus.inProgress,
                 ),
@@ -524,7 +527,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
               const SizedBox(width: 8),
               Expanded(
                 child: _statusChip(
-                  label: 'Pending',
+                  label: context.translate('pending'),
                   icon: Icons.schedule_outlined,
                   status: TripStatus.pending,
                 ),
@@ -611,7 +614,7 @@ class _AddNewTripState extends ConsumerState<AddNewTrip> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Create Trip',
+                    context.translate('create_trip'),
                     style: GoogleFonts.manrope(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,

@@ -11,9 +11,10 @@ class AppDimensions {
   static const double gutter = 16.0;
 
   // Shapes & Corner Radii
-  static const double radiusSmall = 8.0;   // Buttons, Chips, Indicators (0.5rem)
+  static const double radiusSmall = 8.0; // Buttons, Chips, Indicators (0.5rem)
   static const double radiusMedium = 12.0; // Inputs, Small Cards (0.75rem)
-  static const double radiusLarge = 20.0;  // Main Content Cards, Bottom Sheets (1.25rem)
+  static const double radiusLarge =
+      20.0; // Main Content Cards, Bottom Sheets (1.25rem)
   static const double radiusFull = 9999.0; // FAB, Rounded Pills
 
   // Icon Sizes

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
 import '../../core/database/app_database.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../shared/widgets/main_shell.dart';
@@ -31,7 +32,6 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exchangeRate = ref.watch(exchangeRateProvider);
     final iceBillsAsync = ref.watch(iceBillsStreamProvider);
     final customBillsAsync = ref.watch(customBillsStreamProvider);
 
@@ -41,7 +41,7 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
       backgroundColor: AppColors.background,
       drawer: const AppNavigationDrawer(currentLocation: '/bills'),
       appBar: AppHeader(
-        title: 'Bills & Invoices',
+        title: context.translate('bills_invoices'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: AppColors.primary),
@@ -54,17 +54,20 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
           // Section Tabs: Ice Cube Bills vs Dedicated Custom Bills Section
           Container(
             margin: const EdgeInsets.fromLTRB(
-                AppDimensions.containerMargin,
-                AppDimensions.md,
-                AppDimensions.containerMargin,
-                AppDimensions.sm),
+              AppDimensions.containerMargin,
+              AppDimensions.md,
+              AppDimensions.containerMargin,
+              AppDimensions.sm,
+            ),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: AppColors.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                ),
               ],
             ),
             child: Row(
@@ -78,20 +81,23 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
                         color: _tabIndex == 0
                             ? AppColors.primary
                             : Colors.transparent,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusMedium),
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMedium,
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.ac_unit,
-                              size: 16,
-                              color: _tabIndex == 0
-                                  ? Colors.white
-                                  : AppColors.onSurfaceVariant),
+                          Icon(
+                            Icons.ac_unit,
+                            size: 16,
+                            color: _tabIndex == 0
+                                ? Colors.white
+                                : AppColors.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 6),
                           Text(
-                            'Ice Cube Bills',
+                            context.translate('ice_cube_bills'),
                             style: GoogleFonts.manrope(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -114,20 +120,23 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
                         color: _tabIndex == 1
                             ? AppColors.secondary
                             : Colors.transparent,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusMedium),
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMedium,
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.style,
-                              size: 16,
-                              color: _tabIndex == 1
-                                  ? Colors.white
-                                  : AppColors.onSurfaceVariant),
+                          Icon(
+                            Icons.style,
+                            size: 16,
+                            color: _tabIndex == 1
+                                ? Colors.white
+                                : AppColors.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 6),
                           Text(
-                            'Custom Bills',
+                            context.translate('custom_bills'),
                             style: GoogleFonts.manrope(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -148,11 +157,12 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
           // Search Bar
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.containerMargin),
+              horizontal: AppDimensions.containerMargin,
+            ),
             child: AppSearchBar(
               hint: _tabIndex == 0
-                  ? 'Search Ice Bills...'
-                  : 'Search Custom Bills...',
+                  ? context.translate('search_ice_bills')
+                  : context.translate('search_custom_bills'),
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _query = v),
             ),
@@ -161,9 +171,22 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
 
           // Status Filter Chips
           FilterChipRow(
-            chips: const ['All', 'Paid', 'Partial', 'Unpaid'],
-            selected: _filter,
-            onSelected: (v) => setState(() => _filter = v),
+            chips: [
+              context.translate('all'),
+              context.translate('paid'),
+              context.translate('partial'),
+              context.translate('unpaid'),
+            ],
+            selected: context.translate(_filter.toLowerCase()),
+            onSelected: (v) {
+              final filterKeys = {
+                context.translate('all'): 'All',
+                context.translate('paid'): 'Paid',
+                context.translate('partial'): 'Partial',
+                context.translate('unpaid'): 'Unpaid',
+              };
+              setState(() => _filter = filterKeys[v] ?? 'All');
+            },
           ),
 
           const SizedBox(height: AppDimensions.sm),
@@ -173,11 +196,15 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
             child: billsAsync.when(
               data: (billsList) {
                 final filtered = billsList.where((b) {
-                  final matchStatus = _filter == 'All' ||
+                  final matchStatus =
+                      _filter == 'All' ||
                       b.status.toLowerCase() == _filter.toLowerCase();
-                  final matchQ = _query.isEmpty ||
+                  final matchQ =
+                      _query.isEmpty ||
                       b.id.toLowerCase().contains(_query.toLowerCase()) ||
-                      b.customerName.toLowerCase().contains(_query.toLowerCase());
+                      b.customerName.toLowerCase().contains(
+                        _query.toLowerCase(),
+                      );
                   return matchStatus && matchQ;
                 }).toList();
 
@@ -187,9 +214,9 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
                         ? Icons.receipt_long_outlined
                         : Icons.style_outlined,
                     title: _tabIndex == 0
-                        ? 'No Ice Bills Found'
-                        : 'No Custom Bills Found',
-                    subtitle: 'Tap + above to create a new bill',
+                        ? context.translate('no_ice_bills')
+                        : context.translate('no_custom_bills'),
+                    subtitle: context.translate('create_bill_hint'),
                   );
                 }
 
@@ -199,26 +226,24 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
 
                 return ListView(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.containerMargin),
+                    horizontal: AppDimensions.containerMargin,
+                  ),
                   children: [
                     _BillsSummaryCard(
                       totalUnpaid: totalUnpaid,
                       count: filtered.length,
-                      exchangeRate: exchangeRate,
                     ),
                     const SizedBox(height: AppDimensions.md),
-                    ...filtered.map((bill) => _BillTile(
-                          bill: bill,
-                          exchangeRate: exchangeRate,
-                        )),
+                    ...filtered.map((bill) => _BillTile(bill: bill)),
                   ],
                 );
               },
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, stack) => Center(
-                child: Text('Error loading bills: $err',
-                    style: GoogleFonts.manrope(color: AppColors.error)),
+                child: Text(
+                  '${context.translate('error_loading_bills')}: $err',
+                  style: GoogleFonts.manrope(color: AppColors.error),
+                ),
               ),
             ),
           ),
@@ -231,11 +256,8 @@ class _BillsScreenState extends ConsumerState<BillsScreen> {
 class _BillsSummaryCard extends StatelessWidget {
   final double totalUnpaid;
   final int count;
-  final double exchangeRate;
-  const _BillsSummaryCard(
-      {required this.totalUnpaid,
-      required this.count,
-      required this.exchangeRate});
+
+  const _BillsSummaryCard({required this.totalUnpaid, required this.count});
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +268,9 @@ class _BillsSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04), blurRadius: 16)
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
+          ),
         ],
       ),
       child: Column(
@@ -255,27 +279,27 @@ class _BillsSummaryCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Outstanding Balance',
-                  style: GoogleFonts.jetBrainsMono(
-                      fontSize: 11, color: AppColors.onSurfaceVariant)),
+              Text(
+                context.translate('outstanding_balance'),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 11,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
               StatusChip(
-                  label: '$count Bills', color: AppColors.primary),
+                label: '$count ${context.translate('bills')}',
+                color: AppColors.primary,
+              ),
             ],
           ),
           const SizedBox(height: AppDimensions.xs),
           Text(
-            CurrencyFormatter.formatUSD(totalUnpaid),
+            CurrencyFormatter.formatSYP(totalUnpaid),
             style: GoogleFonts.manrope(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: AppColors.unpaid),
-          ),
-          Text(
-            CurrencyFormatter.formatSYP(totalUnpaid, exchangeRate),
-            style: GoogleFonts.jetBrainsMono(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurfaceVariant),
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.onSurface,
+            ),
           ),
         ],
       ),
@@ -285,8 +309,8 @@ class _BillsSummaryCard extends StatelessWidget {
 
 class _BillTile extends StatelessWidget {
   final Bill bill;
-  final double exchangeRate;
-  const _BillTile({required this.bill, required this.exchangeRate});
+
+  const _BillTile({required this.bill});
 
   @override
   Widget build(BuildContext context) {
@@ -302,8 +326,7 @@ class _BillTile extends StatelessWidget {
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8),
         ],
       ),
       child: ListTile(
@@ -324,11 +347,14 @@ class _BillTile extends StatelessWidget {
         ),
         title: Row(
           children: [
-            Text(bill.id,
-                style: GoogleFonts.jetBrainsMono(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onSurface)),
+            Text(
+              bill.id,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.onSurface,
+              ),
+            ),
             const SizedBox(width: 6),
             if (bill.isCustom)
               Container(
@@ -337,33 +363,40 @@ class _BillTile extends StatelessWidget {
                   color: AppColors.secondaryContainer,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: Text('Custom',
-                    style: GoogleFonts.manrope(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondary)),
+                child: Text(
+                  context.translate('custom'),
+                  style: GoogleFonts.manrope(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.secondary,
+                  ),
+                ),
               ),
           ],
         ),
         subtitle: Text(
           '${bill.customerName} • ${bill.issueDate.toString().substring(0, 10)}',
           style: GoogleFonts.manrope(
-              fontSize: 12, color: AppColors.onSurfaceVariant),
+            fontSize: 12,
+            color: AppColors.onSurfaceVariant,
+          ),
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(CurrencyFormatter.formatUSD(bill.total),
-                style: GoogleFonts.jetBrainsMono(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface)),
-            StatusChip(
-                label: bill.status.toUpperCase(), color: statusColor),
+            Text(
+              CurrencyFormatter.formatSYP(bill.total),
+              style: GoogleFonts.manrope(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.onSurface,
+              ),
+            ),
+            StatusChip(label: bill.status.toUpperCase(), color: statusColor),
           ],
         ),
-        onTap: () => context.go('/bills/detail', extra: bill),
+        onTap: () => context.push('/bills/detail', extra: bill),
       ),
     );
   }

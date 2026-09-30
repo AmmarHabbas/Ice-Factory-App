@@ -1,5 +1,8 @@
 import 'package:go_router/go_router.dart';
+import 'package:ice_cube_app/features/login/login_screen.dart';
 import 'package:ice_cube_app/features/schedule/add_new_trip.dart';
+import 'package:ice_cube_app/features/workers/add_worker_screen.dart';
+import 'package:ice_cube_app/features/workers/workers_screen.dart';
 import '../../core/database/app_database.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/bills/bills_screen.dart';
@@ -17,9 +20,10 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/search/search_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/dashboard',
+  initialLocation: '/login',
   routes: [
-    GoRoute(path: '/', redirect: (_, __) => '/dashboard'),
+    GoRoute(path: '/', redirect: (_, __) => '/login'),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/dashboard',
       builder: (context, state) => const DashboardScreen(),
@@ -61,6 +65,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/schedule',
       builder: (context, state) => const ScheduleScreen(),
+    ),
+    GoRoute(
+      path: '/workers',
+      builder: (context, state) => const WorkersScreen(),
+    ),
+    GoRoute(
+      path: '/addworkers',
+      builder: (context, state) => const AddWorkerScreen(),
     ),
     GoRoute(
       path: '/reports',

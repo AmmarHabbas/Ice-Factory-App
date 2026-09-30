@@ -80,3 +80,27 @@ final allBillItemsStreamProvider = StreamProvider<List<BillItem>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.select(db.billItems).watch();
 });
+
+// --- WORKER PROVIDERS ---
+final workerRepositoryProvider = Provider<WorkerRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return WorkerRepository(db);
+});
+
+final allWorkersStreamProvider = StreamProvider<List<Worker>>((ref) {
+  return ref.watch(workerRepositoryProvider).watchAllWorkers();
+});
+
+final allWorkerPaymentsStreamProvider =
+    StreamProvider<List<WorkerPayment>>((ref) {
+  return ref.watch(workerRepositoryProvider).watchAllPayments();
+});
+
+final todayWorkerCostsStreamProvider = StreamProvider<double>((ref) {
+  return ref.watch(workerRepositoryProvider).watchTodayWorkerCosts();
+});
+
+final totalLoanBalanceStreamProvider = StreamProvider<double>((ref) {
+  return ref.watch(workerRepositoryProvider).watchTotalLoanBalance();
+});
+

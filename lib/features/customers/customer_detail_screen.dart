@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/database/app_database.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
@@ -22,15 +24,31 @@ class CustomerDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
-  String _selectedTab = 'History'; // 'History', 'Payments', 'Notes'
+  static const String _historyTab = 'history';
+  static const String _paymentsTab = 'payments';
+  static const String _notesTab = 'notes';
+
+  String _selectedTab = _historyTab;
+
+  Future<void> _launchPhoneCall(Customer customer) async {
+    final cleanedPhone = customer.phone.replaceAll(RegExp(r'[^+0-9]'), '');
+    final phoneUri = Uri(scheme: 'tel', path: cleanedPhone);
+
+    if (!await launchUrl(phoneUri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.translate('failed_to_open_phone'))),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     if (widget.customer == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        appBar: const AppHeader(
-          title: 'Customer Detail',
+        appBar: AppHeader(
+          title: context.translate('customer_detail'),
           showMenuButton: false,
         ),
         body: Center(
@@ -44,7 +62,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'No Customer Selected',
+                context.translate('no_customer_selected'),
                 style: GoogleFonts.manrope(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -58,7 +76,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Go Back'),
+                child: Text(context.translate('go_back')),
               ),
             ],
           ),
@@ -67,7 +85,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     }
 
     final c = widget.customer!;
-    final exchangeRate = ref.watch(exchangeRateProvider);
+
     final allBillsAsync = ref.watch(allBillsStreamProvider);
     final allBillItemsAsync = ref.watch(allBillItemsStreamProvider);
 
@@ -85,11 +103,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               .where((b) => !b.isCustom)
               .toList();
           final totalOrders = customerBills.length;
-          final totalPurchasesUSD = customerBills.fold<double>(
+          final totalPurchasesSYP = customerBills.fold<double>(
             0.0,
             (sum, b) => sum + b.total,
           );
-          final totalPaidUSD = customerBills.fold<double>(
+          final totalPaidSYP = customerBills.fold<double>(
             0.0,
             (sum, b) => sum + b.paidAmount,
           );
@@ -127,9 +145,8 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               // ── Key Metrics Grid ──────────────────────────────────────────
               _buildKeyMetricsGrid(
                 c,
-                exchangeRate,
                 totalOrders,
-                totalPurchasesUSD,
+                totalPurchasesSYP,
                 totalVolumeKg,
                 customerBills,
               ),
@@ -147,17 +164,19 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               const SizedBox(height: AppDimensions.md),
 
               // ── Tab Content ───────────────────────────────────────────────
-              if (_selectedTab == 'History')
-                _buildHistoryTab(context, customerBills, exchangeRate)
-              else if (_selectedTab == 'Payments')
-                _buildPaymentsTab(customerBills, totalPaidUSD, c, exchangeRate)
+              if (_selectedTab == _historyTab)
+                _buildHistoryTab(context, customerBills)
+              else if (_selectedTab == _paymentsTab)
+                _buildPaymentsTab(customerBills, totalPaidSYP, c)
               else
                 _buildNotesTab(c),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error loading customer data: $e')),
+        error: (e, s) => Center(
+          child: Text('${context.translate('error_loading_customer')}: $e'),
+        ),
       ),
     );
   }
@@ -240,7 +259,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                             Text(
                               c.address.isNotEmpty
                                   ? c.address
-                                  : 'Commercial District',
+                                  : context.translate('commercial_district'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.manrope(
@@ -279,7 +298,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                     const SizedBox(height: 2),
                     if (c.ownerName.isNotEmpty)
                       Text(
-                        'Owner: ${c.ownerName}',
+                        '${context.translate('owner_prefix')} ${c.ownerName}',
                         style: GoogleFonts.manrope(
                           fontSize: 12,
                           color: AppColors.onSurfaceVariant,
@@ -287,6 +306,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       ),
                     const SizedBox(height: 2),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
                           Icons.location_on,
@@ -333,15 +353,9 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Calling ${c.name} (${c.phone})...'),
-                      ),
-                    );
-                  },
+                  onPressed: () => _launchPhoneCall(c),
                   icon: const Icon(Icons.phone, size: 18),
-                  label: const Text('Call'),
+                  label: Text(context.translate('call')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -360,12 +374,14 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Opening navigation to ${c.address}...'),
+                        content: Text(
+                          '${context.translate('opening_navigation')} ${c.address}...',
+                        ),
                       ),
                     );
                   },
                   icon: const Icon(Icons.directions, size: 18),
-                  label: const Text('Directions'),
+                  label: Text(context.translate('directions')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.outlineVariant),
@@ -387,9 +403,8 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
 
   Widget _buildKeyMetricsGrid(
     Customer c,
-    double exchangeRate,
     int totalOrders,
-    double totalPurchasesUSD,
+    double totalPurchasesSYP,
     double totalVolumeKg,
     List<dynamic> customerBills,
   ) {
@@ -433,7 +448,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'OUTSTANDING',
+                          context.translate('outstanding_label'),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -443,19 +458,9 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 6),
+                    Text(CurrencyFormatter.formatSYP(c.outstandingBalance)),
                     Text(
-                      CurrencyFormatter.formatUSD(c.outstandingBalance),
-                      style: GoogleFonts.manrope(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: hasDebt ? AppColors.unpaid : AppColors.onSurface,
-                      ),
-                    ),
-                    Text(
-                      CurrencyFormatter.formatSYP(
-                        c.outstandingBalance,
-                        exchangeRate,
-                      ),
+                      CurrencyFormatter.formatSYP(c.outstandingBalance),
                       style: GoogleFonts.jetBrainsMono(
                         fontSize: 10,
                         color: AppColors.onSurfaceVariant,
@@ -491,7 +496,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'TOTAL VOLUME',
+                          context.translate('total_volume_label'),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -503,8 +508,8 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                     const SizedBox(height: 6),
                     Text(
                       totalOrders == 0
-                          ? '0 Orders'
-                          : '$totalOrders ${totalOrders == 1 ? 'Order' : 'Orders'}',
+                          ? context.translate('zero_orders')
+                          : '$totalOrders ${context.translate(totalOrders == 1 ? 'order_singular' : 'order_plural')}',
                       style: GoogleFonts.manrope(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -513,12 +518,8 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                     ),
                     Text(
                       totalVolumeKg > 0
-                          ? '${totalVolumeKg.toStringAsFixed(1)} kg total'
-                          : CurrencyFormatter.formatUSD(totalPurchasesUSD),
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10,
-                        color: AppColors.secondary,
-                      ),
+                          ? '${totalVolumeKg.toStringAsFixed(1)} ${context.translate('kg')}'
+                          : CurrencyFormatter.formatSYP(totalPurchasesSYP),
                     ),
                   ],
                 ),
@@ -552,7 +553,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'LAST DELIVERY',
+                        context.translate('last_delivery_label'),
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -584,7 +585,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   ),
                 ),
                 child: Text(
-                  'Route 1 (Active)',
+                  context.translate('route_active'),
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -604,10 +605,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
       width: double.infinity,
       height: 52,
       child: ElevatedButton.icon(
-        onPressed: () => context.go('/bills/create'),
+        onPressed: () => context.push('/bills/create'),
         icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 20),
         label: Text(
-          'Create New Invoice',
+          context.translate('create_new_invoice'),
           style: GoogleFonts.manrope(
             fontSize: 15,
             fontWeight: FontWeight.w700,
@@ -627,7 +628,20 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
   }
 
   Widget _buildTabSelector() {
-    final tabs = ['History', 'Payments', 'Notes'];
+    final tabs = [
+      _TabInfo(
+        value: _historyTab,
+        label: context.translate('customer_tab_history'),
+      ),
+      _TabInfo(
+        value: _paymentsTab,
+        label: context.translate('customer_tab_payments'),
+      ),
+      _TabInfo(
+        value: _notesTab,
+        label: context.translate('customer_tab_notes'),
+      ),
+    ];
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -636,10 +650,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
       ),
       child: Row(
         children: tabs.map((tab) {
-          final isSelected = _selectedTab == tab;
+          final isSelected = _selectedTab == tab.value;
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _selectedTab = tab),
+              onTap: () => setState(() => _selectedTab = tab.value),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -658,7 +672,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    tab,
+                    tab.label,
                     style: GoogleFonts.manrope(
                       fontSize: 13,
                       fontWeight: isSelected
@@ -678,17 +692,13 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     );
   }
 
-  Widget _buildHistoryTab(
-    BuildContext context,
-    List<Bill> bills,
-    double exchangeRate,
-  ) {
+  Widget _buildHistoryTab(BuildContext context, List<Bill> bills) {
     if (bills.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(24),
         alignment: Alignment.center,
         child: Text(
-          'No invoice history found for this customer.',
+          context.translate('no_invoice_history_found'),
           style: GoogleFonts.manrope(
             fontSize: 13,
             color: AppColors.onSurfaceVariant,
@@ -746,15 +756,15 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        CurrencyFormatter.formatUSD(bill.total),
+                        CurrencyFormatter.formatSYP(bill.total),
                         style: GoogleFonts.manrope(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.onSurface,
                         ),
                       ),
                       Text(
-                        '${DateFormat('MMM d, yyyy').format(bill.issueDate)} • ${CurrencyFormatter.formatSYP(bill.total, exchangeRate)}',
+                        DateFormat('MMM d, yyyy').format(bill.issueDate),
                         style: GoogleFonts.manrope(
                           fontSize: 11,
                           color: AppColors.onSurfaceVariant,
@@ -763,7 +773,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                     ],
                   ),
                   InkWell(
-                    onTap: () => context.go('/bills/detail', extra: bill),
+                    onTap: () => context.push('/bills/detail', extra: bill),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -786,7 +796,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'View Bill',
+                            context.translate('view_bill'),
                             style: GoogleFonts.manrope(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -806,12 +816,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     );
   }
 
-  Widget _buildPaymentsTab(
-    List<Bill> bills,
-    double totalPaidUSD,
-    Customer c,
-    double exchangeRate,
-  ) {
+  Widget _buildPaymentsTab(List<Bill> bills, double totalPaidSYP, Customer c) {
     return Column(
       children: [
         Container(
@@ -824,7 +829,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Payment Summary',
+                context.translate('payment_summary'),
                 style: GoogleFonts.manrope(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -833,20 +838,12 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               ),
               const SizedBox(height: 8),
               _DetailRow(
-                label: 'Total Collected',
-                value: CurrencyFormatter.formatUSD(totalPaidUSD),
-                valueColor: AppColors.paid,
+                label: context.translate('total_collected'),
+                value: CurrencyFormatter.formatSYP(totalPaidSYP),
               ),
               _DetailRow(
-                label: 'Outstanding Balance',
-                value: CurrencyFormatter.formatUSD(c.outstandingBalance),
-                valueColor: c.outstandingBalance > 0
-                    ? AppColors.unpaid
-                    : AppColors.paid,
-              ),
-              _DetailRow(
-                label: 'Conversion Rate',
-                value: '1 USD = ${exchangeRate.toStringAsFixed(0)} SYP',
+                label: context.translate('outstanding_balance'),
+                value: CurrencyFormatter.formatSYP(c.outstandingBalance),
               ),
             ],
           ),
@@ -867,7 +864,9 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Payment on ${bill.id}',
+                      context
+                          .translate('payment_on')
+                          .replaceAll('{id}', bill.id),
                       style: GoogleFonts.manrope(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -884,10 +883,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   ],
                 ),
                 Text(
-                  '+ ${CurrencyFormatter.formatUSD(bill.paidAmount)}',
-                  style: GoogleFonts.jetBrainsMono(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                  '+ ${CurrencyFormatter.formatSYP(bill.paidAmount)}',
+                  style: GoogleFonts.manrope(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.paid,
                   ),
                 ),
@@ -910,7 +909,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Customer Notes & Information',
+            context.translate('customer_notes_information'),
             style: GoogleFonts.manrope(
               fontSize: 15,
               fontWeight: FontWeight.bold,
@@ -918,24 +917,24 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             ),
           ),
           const SizedBox(height: AppDimensions.md),
-          _DetailRow(label: 'Customer ID', value: c.id),
+          _DetailRow(label: context.translate('customer_id'), value: c.id),
           _DetailRow(
-            label: 'Shop Name',
+            label: context.translate('shop_name'),
             value: c.shopName.isNotEmpty ? c.shopName : '-',
           ),
           _DetailRow(
-            label: 'Owner Name',
+            label: context.translate('owner_name'),
             value: c.ownerName.isNotEmpty ? c.ownerName : '-',
           ),
-          _DetailRow(label: 'Phone', value: c.phone),
-          _DetailRow(label: 'Address', value: c.address),
+          _DetailRow(label: context.translate('phone'), value: c.phone),
+          _DetailRow(label: context.translate('address'), value: c.address),
           _DetailRow(
-            label: 'Account Category',
-            value: c.category.toUpperCase(),
+            label: context.translate('account_category'),
+            value: context.translate(c.category).toUpperCase(),
           ),
           const SizedBox(height: 8),
           Text(
-            'Delivery Guidelines:',
+            context.translate('delivery_guidelines'),
             style: GoogleFonts.manrope(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -944,7 +943,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Standard commercial ice delivery. Morning preferred between 08:00 AM and 11:00 AM.',
+            context.translate('delivery_guidelines_text'),
             style: GoogleFonts.manrope(fontSize: 12, color: AppColors.outline),
           ),
         ],
@@ -953,32 +952,48 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
   }
 }
 
+class _TabInfo {
+  final String value;
+  final String label;
+
+  const _TabInfo({required this.value, required this.label});
+}
+
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
-  final Color? valueColor;
-  const _DetailRow({required this.label, required this.value, this.valueColor});
+  const _DetailRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 11,
-              color: AppColors.onSurfaceVariant,
+          Flexible(
+            flex: 1,
+            child: Text(
+              label,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 11,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.manrope(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: valueColor ?? AppColors.onSurface,
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 2,
+            child: Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.onSurface,
+              ),
             ),
           ),
         ],

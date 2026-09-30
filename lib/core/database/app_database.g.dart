@@ -4305,6 +4305,1026 @@ class IceInventoryEntriesCompanion extends UpdateCompanion<IceInventoryEntry> {
   }
 }
 
+class $WorkersTable extends Workers with TableInfo<$WorkersTable, Worker> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WorkersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _firstNameMeta = const VerificationMeta(
+    'firstName',
+  );
+  @override
+  late final GeneratedColumn<String> firstName = GeneratedColumn<String>(
+    'first_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastNameMeta = const VerificationMeta(
+    'lastName',
+  );
+  @override
+  late final GeneratedColumn<String> lastName = GeneratedColumn<String>(
+    'last_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+    'role',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _shiftMeta = const VerificationMeta('shift');
+  @override
+  late final GeneratedColumn<String> shift = GeneratedColumn<String>(
+    'shift',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _monthlySalaryMeta = const VerificationMeta(
+    'monthlySalary',
+  );
+  @override
+  late final GeneratedColumn<double> monthlySalary = GeneratedColumn<double>(
+    'monthly_salary',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _loanBalanceMeta = const VerificationMeta(
+    'loanBalance',
+  );
+  @override
+  late final GeneratedColumn<double> loanBalance = GeneratedColumn<double>(
+    'loan_balance',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _hireDateMeta = const VerificationMeta(
+    'hireDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> hireDate = GeneratedColumn<DateTime>(
+    'hire_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    firstName,
+    lastName,
+    phone,
+    role,
+    shift,
+    monthlySalary,
+    loanBalance,
+    hireDate,
+    isActive,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'workers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Worker> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('first_name')) {
+      context.handle(
+        _firstNameMeta,
+        firstName.isAcceptableOrUnknown(data['first_name']!, _firstNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_firstNameMeta);
+    }
+    if (data.containsKey('last_name')) {
+      context.handle(
+        _lastNameMeta,
+        lastName.isAcceptableOrUnknown(data['last_name']!, _lastNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_lastNameMeta);
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_phoneMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('shift')) {
+      context.handle(
+        _shiftMeta,
+        shift.isAcceptableOrUnknown(data['shift']!, _shiftMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_shiftMeta);
+    }
+    if (data.containsKey('monthly_salary')) {
+      context.handle(
+        _monthlySalaryMeta,
+        monthlySalary.isAcceptableOrUnknown(
+          data['monthly_salary']!,
+          _monthlySalaryMeta,
+        ),
+      );
+    }
+    if (data.containsKey('loan_balance')) {
+      context.handle(
+        _loanBalanceMeta,
+        loanBalance.isAcceptableOrUnknown(
+          data['loan_balance']!,
+          _loanBalanceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('hire_date')) {
+      context.handle(
+        _hireDateMeta,
+        hireDate.isAcceptableOrUnknown(data['hire_date']!, _hireDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hireDateMeta);
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Worker map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Worker(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      firstName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}first_name'],
+      )!,
+      lastName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_name'],
+      )!,
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      )!,
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role'],
+      )!,
+      shift: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}shift'],
+      )!,
+      monthlySalary: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}monthly_salary'],
+      )!,
+      loanBalance: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}loan_balance'],
+      )!,
+      hireDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}hire_date'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+    );
+  }
+
+  @override
+  $WorkersTable createAlias(String alias) {
+    return $WorkersTable(attachedDatabase, alias);
+  }
+}
+
+class Worker extends DataClass implements Insertable<Worker> {
+  final String id;
+  final String firstName;
+  final String lastName;
+  final String phone;
+
+  /// Role: driver | all_around | factory
+  final String role;
+
+  /// Shift: morning | afternoon | night
+  final String shift;
+
+  /// Monthly base salary in SYP
+  final double monthlySalary;
+
+  /// Accumulated outstanding debt / loan balance owed by this worker
+  final double loanBalance;
+  final DateTime hireDate;
+  final bool isActive;
+  const Worker({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    required this.phone,
+    required this.role,
+    required this.shift,
+    required this.monthlySalary,
+    required this.loanBalance,
+    required this.hireDate,
+    required this.isActive,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['first_name'] = Variable<String>(firstName);
+    map['last_name'] = Variable<String>(lastName);
+    map['phone'] = Variable<String>(phone);
+    map['role'] = Variable<String>(role);
+    map['shift'] = Variable<String>(shift);
+    map['monthly_salary'] = Variable<double>(monthlySalary);
+    map['loan_balance'] = Variable<double>(loanBalance);
+    map['hire_date'] = Variable<DateTime>(hireDate);
+    map['is_active'] = Variable<bool>(isActive);
+    return map;
+  }
+
+  WorkersCompanion toCompanion(bool nullToAbsent) {
+    return WorkersCompanion(
+      id: Value(id),
+      firstName: Value(firstName),
+      lastName: Value(lastName),
+      phone: Value(phone),
+      role: Value(role),
+      shift: Value(shift),
+      monthlySalary: Value(monthlySalary),
+      loanBalance: Value(loanBalance),
+      hireDate: Value(hireDate),
+      isActive: Value(isActive),
+    );
+  }
+
+  factory Worker.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Worker(
+      id: serializer.fromJson<String>(json['id']),
+      firstName: serializer.fromJson<String>(json['firstName']),
+      lastName: serializer.fromJson<String>(json['lastName']),
+      phone: serializer.fromJson<String>(json['phone']),
+      role: serializer.fromJson<String>(json['role']),
+      shift: serializer.fromJson<String>(json['shift']),
+      monthlySalary: serializer.fromJson<double>(json['monthlySalary']),
+      loanBalance: serializer.fromJson<double>(json['loanBalance']),
+      hireDate: serializer.fromJson<DateTime>(json['hireDate']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'firstName': serializer.toJson<String>(firstName),
+      'lastName': serializer.toJson<String>(lastName),
+      'phone': serializer.toJson<String>(phone),
+      'role': serializer.toJson<String>(role),
+      'shift': serializer.toJson<String>(shift),
+      'monthlySalary': serializer.toJson<double>(monthlySalary),
+      'loanBalance': serializer.toJson<double>(loanBalance),
+      'hireDate': serializer.toJson<DateTime>(hireDate),
+      'isActive': serializer.toJson<bool>(isActive),
+    };
+  }
+
+  Worker copyWith({
+    String? id,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? role,
+    String? shift,
+    double? monthlySalary,
+    double? loanBalance,
+    DateTime? hireDate,
+    bool? isActive,
+  }) => Worker(
+    id: id ?? this.id,
+    firstName: firstName ?? this.firstName,
+    lastName: lastName ?? this.lastName,
+    phone: phone ?? this.phone,
+    role: role ?? this.role,
+    shift: shift ?? this.shift,
+    monthlySalary: monthlySalary ?? this.monthlySalary,
+    loanBalance: loanBalance ?? this.loanBalance,
+    hireDate: hireDate ?? this.hireDate,
+    isActive: isActive ?? this.isActive,
+  );
+  Worker copyWithCompanion(WorkersCompanion data) {
+    return Worker(
+      id: data.id.present ? data.id.value : this.id,
+      firstName: data.firstName.present ? data.firstName.value : this.firstName,
+      lastName: data.lastName.present ? data.lastName.value : this.lastName,
+      phone: data.phone.present ? data.phone.value : this.phone,
+      role: data.role.present ? data.role.value : this.role,
+      shift: data.shift.present ? data.shift.value : this.shift,
+      monthlySalary: data.monthlySalary.present
+          ? data.monthlySalary.value
+          : this.monthlySalary,
+      loanBalance: data.loanBalance.present
+          ? data.loanBalance.value
+          : this.loanBalance,
+      hireDate: data.hireDate.present ? data.hireDate.value : this.hireDate,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Worker(')
+          ..write('id: $id, ')
+          ..write('firstName: $firstName, ')
+          ..write('lastName: $lastName, ')
+          ..write('phone: $phone, ')
+          ..write('role: $role, ')
+          ..write('shift: $shift, ')
+          ..write('monthlySalary: $monthlySalary, ')
+          ..write('loanBalance: $loanBalance, ')
+          ..write('hireDate: $hireDate, ')
+          ..write('isActive: $isActive')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    firstName,
+    lastName,
+    phone,
+    role,
+    shift,
+    monthlySalary,
+    loanBalance,
+    hireDate,
+    isActive,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Worker &&
+          other.id == this.id &&
+          other.firstName == this.firstName &&
+          other.lastName == this.lastName &&
+          other.phone == this.phone &&
+          other.role == this.role &&
+          other.shift == this.shift &&
+          other.monthlySalary == this.monthlySalary &&
+          other.loanBalance == this.loanBalance &&
+          other.hireDate == this.hireDate &&
+          other.isActive == this.isActive);
+}
+
+class WorkersCompanion extends UpdateCompanion<Worker> {
+  final Value<String> id;
+  final Value<String> firstName;
+  final Value<String> lastName;
+  final Value<String> phone;
+  final Value<String> role;
+  final Value<String> shift;
+  final Value<double> monthlySalary;
+  final Value<double> loanBalance;
+  final Value<DateTime> hireDate;
+  final Value<bool> isActive;
+  final Value<int> rowid;
+  const WorkersCompanion({
+    this.id = const Value.absent(),
+    this.firstName = const Value.absent(),
+    this.lastName = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.role = const Value.absent(),
+    this.shift = const Value.absent(),
+    this.monthlySalary = const Value.absent(),
+    this.loanBalance = const Value.absent(),
+    this.hireDate = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WorkersCompanion.insert({
+    required String id,
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String role,
+    required String shift,
+    this.monthlySalary = const Value.absent(),
+    this.loanBalance = const Value.absent(),
+    required DateTime hireDate,
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       firstName = Value(firstName),
+       lastName = Value(lastName),
+       phone = Value(phone),
+       role = Value(role),
+       shift = Value(shift),
+       hireDate = Value(hireDate);
+  static Insertable<Worker> custom({
+    Expression<String>? id,
+    Expression<String>? firstName,
+    Expression<String>? lastName,
+    Expression<String>? phone,
+    Expression<String>? role,
+    Expression<String>? shift,
+    Expression<double>? monthlySalary,
+    Expression<double>? loanBalance,
+    Expression<DateTime>? hireDate,
+    Expression<bool>? isActive,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (firstName != null) 'first_name': firstName,
+      if (lastName != null) 'last_name': lastName,
+      if (phone != null) 'phone': phone,
+      if (role != null) 'role': role,
+      if (shift != null) 'shift': shift,
+      if (monthlySalary != null) 'monthly_salary': monthlySalary,
+      if (loanBalance != null) 'loan_balance': loanBalance,
+      if (hireDate != null) 'hire_date': hireDate,
+      if (isActive != null) 'is_active': isActive,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WorkersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? firstName,
+    Value<String>? lastName,
+    Value<String>? phone,
+    Value<String>? role,
+    Value<String>? shift,
+    Value<double>? monthlySalary,
+    Value<double>? loanBalance,
+    Value<DateTime>? hireDate,
+    Value<bool>? isActive,
+    Value<int>? rowid,
+  }) {
+    return WorkersCompanion(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      shift: shift ?? this.shift,
+      monthlySalary: monthlySalary ?? this.monthlySalary,
+      loanBalance: loanBalance ?? this.loanBalance,
+      hireDate: hireDate ?? this.hireDate,
+      isActive: isActive ?? this.isActive,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (firstName.present) {
+      map['first_name'] = Variable<String>(firstName.value);
+    }
+    if (lastName.present) {
+      map['last_name'] = Variable<String>(lastName.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (shift.present) {
+      map['shift'] = Variable<String>(shift.value);
+    }
+    if (monthlySalary.present) {
+      map['monthly_salary'] = Variable<double>(monthlySalary.value);
+    }
+    if (loanBalance.present) {
+      map['loan_balance'] = Variable<double>(loanBalance.value);
+    }
+    if (hireDate.present) {
+      map['hire_date'] = Variable<DateTime>(hireDate.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkersCompanion(')
+          ..write('id: $id, ')
+          ..write('firstName: $firstName, ')
+          ..write('lastName: $lastName, ')
+          ..write('phone: $phone, ')
+          ..write('role: $role, ')
+          ..write('shift: $shift, ')
+          ..write('monthlySalary: $monthlySalary, ')
+          ..write('loanBalance: $loanBalance, ')
+          ..write('hireDate: $hireDate, ')
+          ..write('isActive: $isActive, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WorkerPaymentsTable extends WorkerPayments
+    with TableInfo<$WorkerPaymentsTable, WorkerPayment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WorkerPaymentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _workerIdMeta = const VerificationMeta(
+    'workerId',
+  );
+  @override
+  late final GeneratedColumn<String> workerId = GeneratedColumn<String>(
+    'worker_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    workerId,
+    type,
+    amount,
+    date,
+    notes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'worker_payments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WorkerPayment> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('worker_id')) {
+      context.handle(
+        _workerIdMeta,
+        workerId.isAcceptableOrUnknown(data['worker_id']!, _workerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_workerIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WorkerPayment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WorkerPayment(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      workerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}worker_id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+    );
+  }
+
+  @override
+  $WorkerPaymentsTable createAlias(String alias) {
+    return $WorkerPaymentsTable(attachedDatabase, alias);
+  }
+}
+
+class WorkerPayment extends DataClass implements Insertable<WorkerPayment> {
+  final String id;
+  final String workerId;
+
+  /// Type: salary | loan_advance | loan_repayment
+  final String type;
+  final double amount;
+  final DateTime date;
+  final String? notes;
+  const WorkerPayment({
+    required this.id,
+    required this.workerId,
+    required this.type,
+    required this.amount,
+    required this.date,
+    this.notes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['worker_id'] = Variable<String>(workerId);
+    map['type'] = Variable<String>(type);
+    map['amount'] = Variable<double>(amount);
+    map['date'] = Variable<DateTime>(date);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  WorkerPaymentsCompanion toCompanion(bool nullToAbsent) {
+    return WorkerPaymentsCompanion(
+      id: Value(id),
+      workerId: Value(workerId),
+      type: Value(type),
+      amount: Value(amount),
+      date: Value(date),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+    );
+  }
+
+  factory WorkerPayment.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WorkerPayment(
+      id: serializer.fromJson<String>(json['id']),
+      workerId: serializer.fromJson<String>(json['workerId']),
+      type: serializer.fromJson<String>(json['type']),
+      amount: serializer.fromJson<double>(json['amount']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'workerId': serializer.toJson<String>(workerId),
+      'type': serializer.toJson<String>(type),
+      'amount': serializer.toJson<double>(amount),
+      'date': serializer.toJson<DateTime>(date),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  WorkerPayment copyWith({
+    String? id,
+    String? workerId,
+    String? type,
+    double? amount,
+    DateTime? date,
+    Value<String?> notes = const Value.absent(),
+  }) => WorkerPayment(
+    id: id ?? this.id,
+    workerId: workerId ?? this.workerId,
+    type: type ?? this.type,
+    amount: amount ?? this.amount,
+    date: date ?? this.date,
+    notes: notes.present ? notes.value : this.notes,
+  );
+  WorkerPayment copyWithCompanion(WorkerPaymentsCompanion data) {
+    return WorkerPayment(
+      id: data.id.present ? data.id.value : this.id,
+      workerId: data.workerId.present ? data.workerId.value : this.workerId,
+      type: data.type.present ? data.type.value : this.type,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      date: data.date.present ? data.date.value : this.date,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkerPayment(')
+          ..write('id: $id, ')
+          ..write('workerId: $workerId, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('date: $date, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, workerId, type, amount, date, notes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WorkerPayment &&
+          other.id == this.id &&
+          other.workerId == this.workerId &&
+          other.type == this.type &&
+          other.amount == this.amount &&
+          other.date == this.date &&
+          other.notes == this.notes);
+}
+
+class WorkerPaymentsCompanion extends UpdateCompanion<WorkerPayment> {
+  final Value<String> id;
+  final Value<String> workerId;
+  final Value<String> type;
+  final Value<double> amount;
+  final Value<DateTime> date;
+  final Value<String?> notes;
+  final Value<int> rowid;
+  const WorkerPaymentsCompanion({
+    this.id = const Value.absent(),
+    this.workerId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.date = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WorkerPaymentsCompanion.insert({
+    required String id,
+    required String workerId,
+    required String type,
+    required double amount,
+    required DateTime date,
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       workerId = Value(workerId),
+       type = Value(type),
+       amount = Value(amount),
+       date = Value(date);
+  static Insertable<WorkerPayment> custom({
+    Expression<String>? id,
+    Expression<String>? workerId,
+    Expression<String>? type,
+    Expression<double>? amount,
+    Expression<DateTime>? date,
+    Expression<String>? notes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (workerId != null) 'worker_id': workerId,
+      if (type != null) 'type': type,
+      if (amount != null) 'amount': amount,
+      if (date != null) 'date': date,
+      if (notes != null) 'notes': notes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WorkerPaymentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? workerId,
+    Value<String>? type,
+    Value<double>? amount,
+    Value<DateTime>? date,
+    Value<String?>? notes,
+    Value<int>? rowid,
+  }) {
+    return WorkerPaymentsCompanion(
+      id: id ?? this.id,
+      workerId: workerId ?? this.workerId,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      date: date ?? this.date,
+      notes: notes ?? this.notes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (workerId.present) {
+      map['worker_id'] = Variable<String>(workerId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkerPaymentsCompanion(')
+          ..write('id: $id, ')
+          ..write('workerId: $workerId, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('date: $date, ')
+          ..write('notes: $notes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4318,6 +5338,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $IceInventoryEntriesTable iceInventoryEntries =
       $IceInventoryEntriesTable(this);
+  late final $WorkersTable workers = $WorkersTable(this);
+  late final $WorkerPaymentsTable workerPayments = $WorkerPaymentsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4332,6 +5354,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     notifications,
     appSettings,
     iceInventoryEntries,
+    workers,
+    workerPayments,
   ];
 }
 
@@ -6544,6 +7568,520 @@ typedef $$IceInventoryEntriesTableProcessedTableManager =
       IceInventoryEntry,
       PrefetchHooks Function()
     >;
+typedef $$WorkersTableCreateCompanionBuilder =
+    WorkersCompanion Function({
+      required String id,
+      required String firstName,
+      required String lastName,
+      required String phone,
+      required String role,
+      required String shift,
+      Value<double> monthlySalary,
+      Value<double> loanBalance,
+      required DateTime hireDate,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+typedef $$WorkersTableUpdateCompanionBuilder =
+    WorkersCompanion Function({
+      Value<String> id,
+      Value<String> firstName,
+      Value<String> lastName,
+      Value<String> phone,
+      Value<String> role,
+      Value<String> shift,
+      Value<double> monthlySalary,
+      Value<double> loanBalance,
+      Value<DateTime> hireDate,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+
+class $$WorkersTableFilterComposer
+    extends Composer<_$AppDatabase, $WorkersTable> {
+  $$WorkersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get firstName => $composableBuilder(
+    column: $table.firstName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastName => $composableBuilder(
+    column: $table.lastName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get shift => $composableBuilder(
+    column: $table.shift,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get monthlySalary => $composableBuilder(
+    column: $table.monthlySalary,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get loanBalance => $composableBuilder(
+    column: $table.loanBalance,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get hireDate => $composableBuilder(
+    column: $table.hireDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WorkersTableOrderingComposer
+    extends Composer<_$AppDatabase, $WorkersTable> {
+  $$WorkersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get firstName => $composableBuilder(
+    column: $table.firstName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastName => $composableBuilder(
+    column: $table.lastName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get shift => $composableBuilder(
+    column: $table.shift,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get monthlySalary => $composableBuilder(
+    column: $table.monthlySalary,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get loanBalance => $composableBuilder(
+    column: $table.loanBalance,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get hireDate => $composableBuilder(
+    column: $table.hireDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WorkersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WorkersTable> {
+  $$WorkersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get firstName =>
+      $composableBuilder(column: $table.firstName, builder: (column) => column);
+
+  GeneratedColumn<String> get lastName =>
+      $composableBuilder(column: $table.lastName, builder: (column) => column);
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get shift =>
+      $composableBuilder(column: $table.shift, builder: (column) => column);
+
+  GeneratedColumn<double> get monthlySalary => $composableBuilder(
+    column: $table.monthlySalary,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get loanBalance => $composableBuilder(
+    column: $table.loanBalance,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get hireDate =>
+      $composableBuilder(column: $table.hireDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+}
+
+class $$WorkersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WorkersTable,
+          Worker,
+          $$WorkersTableFilterComposer,
+          $$WorkersTableOrderingComposer,
+          $$WorkersTableAnnotationComposer,
+          $$WorkersTableCreateCompanionBuilder,
+          $$WorkersTableUpdateCompanionBuilder,
+          (Worker, BaseReferences<_$AppDatabase, $WorkersTable, Worker>),
+          Worker,
+          PrefetchHooks Function()
+        > {
+  $$WorkersTableTableManager(_$AppDatabase db, $WorkersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WorkersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WorkersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WorkersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> firstName = const Value.absent(),
+                Value<String> lastName = const Value.absent(),
+                Value<String> phone = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<String> shift = const Value.absent(),
+                Value<double> monthlySalary = const Value.absent(),
+                Value<double> loanBalance = const Value.absent(),
+                Value<DateTime> hireDate = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkersCompanion(
+                id: id,
+                firstName: firstName,
+                lastName: lastName,
+                phone: phone,
+                role: role,
+                shift: shift,
+                monthlySalary: monthlySalary,
+                loanBalance: loanBalance,
+                hireDate: hireDate,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String firstName,
+                required String lastName,
+                required String phone,
+                required String role,
+                required String shift,
+                Value<double> monthlySalary = const Value.absent(),
+                Value<double> loanBalance = const Value.absent(),
+                required DateTime hireDate,
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkersCompanion.insert(
+                id: id,
+                firstName: firstName,
+                lastName: lastName,
+                phone: phone,
+                role: role,
+                shift: shift,
+                monthlySalary: monthlySalary,
+                loanBalance: loanBalance,
+                hireDate: hireDate,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WorkersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WorkersTable,
+      Worker,
+      $$WorkersTableFilterComposer,
+      $$WorkersTableOrderingComposer,
+      $$WorkersTableAnnotationComposer,
+      $$WorkersTableCreateCompanionBuilder,
+      $$WorkersTableUpdateCompanionBuilder,
+      (Worker, BaseReferences<_$AppDatabase, $WorkersTable, Worker>),
+      Worker,
+      PrefetchHooks Function()
+    >;
+typedef $$WorkerPaymentsTableCreateCompanionBuilder =
+    WorkerPaymentsCompanion Function({
+      required String id,
+      required String workerId,
+      required String type,
+      required double amount,
+      required DateTime date,
+      Value<String?> notes,
+      Value<int> rowid,
+    });
+typedef $$WorkerPaymentsTableUpdateCompanionBuilder =
+    WorkerPaymentsCompanion Function({
+      Value<String> id,
+      Value<String> workerId,
+      Value<String> type,
+      Value<double> amount,
+      Value<DateTime> date,
+      Value<String?> notes,
+      Value<int> rowid,
+    });
+
+class $$WorkerPaymentsTableFilterComposer
+    extends Composer<_$AppDatabase, $WorkerPaymentsTable> {
+  $$WorkerPaymentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get workerId => $composableBuilder(
+    column: $table.workerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WorkerPaymentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $WorkerPaymentsTable> {
+  $$WorkerPaymentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get workerId => $composableBuilder(
+    column: $table.workerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WorkerPaymentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WorkerPaymentsTable> {
+  $$WorkerPaymentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get workerId =>
+      $composableBuilder(column: $table.workerId, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+}
+
+class $$WorkerPaymentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WorkerPaymentsTable,
+          WorkerPayment,
+          $$WorkerPaymentsTableFilterComposer,
+          $$WorkerPaymentsTableOrderingComposer,
+          $$WorkerPaymentsTableAnnotationComposer,
+          $$WorkerPaymentsTableCreateCompanionBuilder,
+          $$WorkerPaymentsTableUpdateCompanionBuilder,
+          (
+            WorkerPayment,
+            BaseReferences<_$AppDatabase, $WorkerPaymentsTable, WorkerPayment>,
+          ),
+          WorkerPayment,
+          PrefetchHooks Function()
+        > {
+  $$WorkerPaymentsTableTableManager(
+    _$AppDatabase db,
+    $WorkerPaymentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WorkerPaymentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WorkerPaymentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WorkerPaymentsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> workerId = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkerPaymentsCompanion(
+                id: id,
+                workerId: workerId,
+                type: type,
+                amount: amount,
+                date: date,
+                notes: notes,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String workerId,
+                required String type,
+                required double amount,
+                required DateTime date,
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WorkerPaymentsCompanion.insert(
+                id: id,
+                workerId: workerId,
+                type: type,
+                amount: amount,
+                date: date,
+                notes: notes,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WorkerPaymentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WorkerPaymentsTable,
+      WorkerPayment,
+      $$WorkerPaymentsTableFilterComposer,
+      $$WorkerPaymentsTableOrderingComposer,
+      $$WorkerPaymentsTableAnnotationComposer,
+      $$WorkerPaymentsTableCreateCompanionBuilder,
+      $$WorkerPaymentsTableUpdateCompanionBuilder,
+      (
+        WorkerPayment,
+        BaseReferences<_$AppDatabase, $WorkerPaymentsTable, WorkerPayment>,
+      ),
+      WorkerPayment,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6566,4 +8104,8 @@ class $AppDatabaseManager {
       $$AppSettingsTableTableManager(_db, _db.appSettings);
   $$IceInventoryEntriesTableTableManager get iceInventoryEntries =>
       $$IceInventoryEntriesTableTableManager(_db, _db.iceInventoryEntries);
+  $$WorkersTableTableManager get workers =>
+      $$WorkersTableTableManager(_db, _db.workers);
+  $$WorkerPaymentsTableTableManager get workerPayments =>
+      $$WorkerPaymentsTableTableManager(_db, _db.workerPayments);
 }

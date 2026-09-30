@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/database/app_database.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../shared/widgets/main_shell.dart';
@@ -24,17 +25,27 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final categories = {
+      'active': context.translate('active'),
+      'new': context.translate('new'),
+      'with_debt': context.translate('with_debt'),
+    };
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppHeader(
-        title: 'Add New Customer',
+        title: context.translate('add_new_customer'),
         showMenuButton: false,
         actions: [
           TextButton(
             onPressed: _save,
-            child: Text('Save',
-                style: GoogleFonts.manrope(
-                    color: AppColors.primary, fontWeight: FontWeight.w600)),
+            child: Text(
+              context.translate('save'),
+              style: GoogleFonts.manrope(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -51,36 +62,41 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                 borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 16)
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 16,
+                  ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Customer Details',
-                      style: GoogleFonts.manrope(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurface)),
+                  Text(
+                    context.translate('customer_details'),
+                    style: GoogleFonts.manrope(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
                   const SizedBox(height: AppDimensions.md),
                   _Field(
                     controller: _nameCtrl,
-                    label: 'Full Name / Business Name',
+                    label: context.translate('full_name_business'),
                     icon: Icons.person_outline,
-                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                    validator: (v) =>
+                        v!.isEmpty ? context.translate('required') : null,
                   ),
                   const SizedBox(height: AppDimensions.md),
                   _Field(
                     controller: _phoneCtrl,
-                    label: 'Phone Number',
+                    label: context.translate('phone_number'),
                     icon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: AppDimensions.md),
                   _Field(
                     controller: _addressCtrl,
-                    label: 'Delivery Address',
+                    label: context.translate('delivery_address'),
                     icon: Icons.location_on_outlined,
                   ),
                 ],
@@ -97,48 +113,52 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                 borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 16)
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 16,
+                  ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Category',
-                      style: GoogleFonts.manrope(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurface)),
+                  Text(
+                    context.translate('category'),
+                    style: GoogleFonts.manrope(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
                   const SizedBox(height: AppDimensions.md),
                   Wrap(
                     spacing: AppDimensions.sm,
                     runSpacing: AppDimensions.sm,
-                    children: ['active', 'new', 'withDebt'].map((cat) {
-                      final isSelected = _category == cat;
-                      final label = switch (cat) {
-                        'withDebt' => 'With Debt',
-                        'new' => 'New Customer',
-                        _ => 'Active',
-                      };
+                    children: categories.entries.map((entry) {
+                      final isSelected = _category == entry.key;
+
                       return GestureDetector(
-                        onTap: () => setState(() => _category = cat),
+                        onTap: () => setState(() => _category = entry.key),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppColors.primary
                                 : AppColors.surfaceContainer,
-                            borderRadius:
-                                BorderRadius.circular(AppDimensions.radiusFull),
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusFull,
+                            ),
                             border: Border.all(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.outlineVariant),
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.outlineVariant,
+                            ),
                           ),
                           child: Text(
-                            label,
+                            entry.value,
                             style: GoogleFonts.manrope(
                               fontSize: 13,
                               color: isSelected
@@ -162,9 +182,13 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
               height: 52,
               child: ElevatedButton(
                 onPressed: _save,
-                child: Text('Add Customer',
-                    style: GoogleFonts.manrope(
-                        fontSize: 16, fontWeight: FontWeight.w600)),
+                child: Text(
+                  context.translate('add_customer'),
+                  style: GoogleFonts.manrope(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ],
@@ -176,7 +200,8 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
       final name = _nameCtrl.text.trim();
-      final id = 'CUST-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      final id =
+          'CUST-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
 
       final customer = Customer(
         id: id,
@@ -194,7 +219,9 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Customer "$name" added successfully!')),
+          SnackBar(
+            content: Text('${context.translate('customer_added')}: $name'),
+          ),
         );
         context.go('/customers');
       }
@@ -216,12 +243,13 @@ class _Field extends StatelessWidget {
   final IconData icon;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
-  const _Field(
-      {required this.controller,
-      required this.label,
-      required this.icon,
-      this.validator,
-      this.keyboardType});
+  const _Field({
+    required this.controller,
+    required this.label,
+    required this.icon,
+    this.validator,
+    this.keyboardType,
+  });
 
   @override
   Widget build(BuildContext context) {

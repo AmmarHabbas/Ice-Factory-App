@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/repositories/app_repository.dart';
@@ -18,11 +19,11 @@ class StatisticsScreen extends ConsumerStatefulWidget {
 }
 
 class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
-  String _period = 'Weekly';
+  String _period = 'weekly';
 
   (DateTime, DateTime) _getDateRange(String period) {
     final now = DateTime.now();
-    if (period == 'Weekly') {
+    if (period == 'weekly') {
       // Week starts Saturday, ends Friday
       final daysToSub = (now.weekday - DateTime.saturday) % 7;
       final start = DateTime(
@@ -34,7 +35,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
         const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
       );
       return (start, end);
-    } else if (period == 'Monthly') {
+    } else if (period == 'monthly') {
       final start = DateTime(now.year, now.month, 1);
       final end = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
       return (start, end);
@@ -47,16 +48,16 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exchangeRate = ref.watch(exchangeRateProvider);
     final topCustomersAsync = ref.watch(topCustomersStreamProvider);
     final billsAsync = ref.watch(allBillsStreamProvider);
+    final workerPaymentsAsync = ref.watch(allWorkerPaymentsStreamProvider);
 
     final (rangeStart, rangeEnd) = _getDateRange(_period);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppNavigationDrawer(currentLocation: '/statistics'),
-      appBar: AppHeader(title: 'Statistics'),
+      appBar: AppHeader(title: context.translate('statistics')),
       body: ListView(
         padding: const EdgeInsets.all(AppDimensions.containerMargin),
         children: [
@@ -69,7 +70,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              'Range: ${DateFormat('MMM d').format(rangeStart)} - ${DateFormat('MMM d, yyyy').format(rangeEnd)}',
+              '${context.translate('range')}: ${DateFormat('MMM d').format(rangeStart)} - ${DateFormat('MMM d, yyyy').format(rangeEnd)}',
               style: GoogleFonts.jetBrainsMono(
                 fontSize: 11,
                 color: AppColors.onSurfaceVariant,
@@ -100,13 +101,28 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                   ? 0.0
                   : (paidCount / totalCount);
 
+              final rangePayments = (workerPaymentsAsync.valueOrNull ?? [])
+                  .where(
+                    (p) =>
+                        p.date.isAfter(
+                          rangeStart.subtract(const Duration(seconds: 1)),
+                        ) &&
+                        p.date.isBefore(
+                          rangeEnd.add(const Duration(seconds: 1)),
+                        ),
+                  )
+                  .toList();
+              final salaryCost = rangePayments
+                  .where((p) => p.type == 'salary')
+                  .fold(0.0, (sum, p) => sum + p.amount);
+
               return Column(
                 children: [
                   // KPI Summary
                   _KpiSummary(
                     periodRevenue: periodRevenue,
                     totalCount: totalCount,
-                    exchangeRate: exchangeRate,
+                    salaryCost: salaryCost,
                   ),
 
                   const SizedBox(height: AppDimensions.lg),
@@ -117,7 +133,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Performance Metrics',
+                          context.translate('performance_metrics'),
                           style: GoogleFonts.manrope(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -126,16 +142,17 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                         ),
                         const SizedBox(height: AppDimensions.md),
                         _PerformanceMetric(
-                          label: 'Invoice Collection Rate',
+                          label: context.translate('invoice_collection_rate'),
                           value: collectionRate,
                           displayValue:
                               '${(collectionRate * 100).toStringAsFixed(0)}%',
                           color: AppColors.primary,
                         ),
                         _PerformanceMetric(
-                          label: 'Total Orders Completed',
+                          label: context.translate('total_orders_completed'),
                           value: totalCount == 0 ? 0.0 : 1.0,
-                          displayValue: '$totalCount orders',
+                          displayValue:
+                              '$totalCount ${context.translate('orders')}',
                           color: AppColors.secondary,
                         ),
                       ],
@@ -146,7 +163,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, s) => Text(
-              'Error loading stats: $err',
+              context
+                  .translate('error_loading_stats')
+                  .replaceAll('{error}', '$err'),
               style: GoogleFonts.manrope(color: AppColors.error),
             ),
           ),
@@ -162,7 +181,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Top Customers Chart',
+                      context.translate('top_customers_chart'),
                       style: GoogleFonts.manrope(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -181,7 +200,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                         ),
                       ),
                       child: Text(
-                        'Ranked by Orders',
+                        context.translate('ranked_by_orders'),
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -193,7 +212,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                 ),
                 const SizedBox(height: AppDimensions.sm),
                 Text(
-                  'Customers ranked descending by total completed and recorded invoices.',
+                  context.translate('customers_ranked_desc'),
                   style: GoogleFonts.manrope(
                     fontSize: 12,
                     color: AppColors.onSurfaceVariant,
@@ -207,7 +226,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: Center(
                           child: Text(
-                            'No customer orders recorded yet.',
+                            context.translate('no_customer_orders_recorded'),
                             style: GoogleFonts.manrope(
                               fontSize: 13,
                               color: AppColors.outline,
@@ -244,8 +263,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                   },
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (err, s) =>
-                      Center(child: Text('Error loading top customers: $err')),
+                  error: (err, s) => Center(
+                    child: Text(
+                      '${context.translate('error_loading_top_customers')}: $err',
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -263,7 +285,7 @@ class _PeriodTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final periods = ['Weekly', 'Monthly', 'Yearly'];
+    final periods = ['weekly', 'monthly', 'yearly'];
     return Container(
       height: 44,
       decoration: BoxDecoration(
@@ -287,7 +309,7 @@ class _PeriodTabs extends StatelessWidget {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  p == 'Weekly' ? 'Weekly (Sat-Fri)' : p,
+                  context.translate(p),
                   style: GoogleFonts.manrope(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -306,11 +328,12 @@ class _PeriodTabs extends StatelessWidget {
 class _KpiSummary extends StatelessWidget {
   final double periodRevenue;
   final int totalCount;
-  final double exchangeRate;
+  final double salaryCost;
+
   const _KpiSummary({
     required this.periodRevenue,
     required this.totalCount,
-    required this.exchangeRate,
+    required this.salaryCost,
   });
 
   @override
@@ -319,17 +342,23 @@ class _KpiSummary extends StatelessWidget {
       children: [
         Expanded(
           child: _KpiCard(
-            label: 'Total Revenue',
-            value: CurrencyFormatter.formatUSD(periodRevenue),
-            subValue: CurrencyFormatter.formatSYP(periodRevenue, exchangeRate),
+            label: context.translate('total_revenue'),
+            value: CurrencyFormatter.formatSYP(periodRevenue),
           ),
         ),
         const SizedBox(width: AppDimensions.sm),
         Expanded(
           child: _KpiCard(
-            label: 'Total Orders',
+            label: context.translate('salary'),
+            value: CurrencyFormatter.formatSYP(salaryCost),
+          ),
+        ),
+        const SizedBox(width: AppDimensions.sm),
+        Expanded(
+          child: _KpiCard(
+            label: context.translate('total_orders'),
             value: '$totalCount',
-            subValue: 'Invoices',
+            subValue: context.translate('invoice'),
           ),
         ),
       ],
@@ -340,12 +369,8 @@ class _KpiSummary extends StatelessWidget {
 class _KpiCard extends StatelessWidget {
   final String label;
   final String value;
-  final String subValue;
-  const _KpiCard({
-    required this.label,
-    required this.value,
-    required this.subValue,
-  });
+  final String? subValue;
+  const _KpiCard({required this.label, required this.value, this.subValue});
 
   @override
   Widget build(BuildContext context) {
@@ -378,14 +403,16 @@ class _KpiCard extends StatelessWidget {
               color: AppColors.onSurface,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            subValue,
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 9,
-              color: AppColors.secondary,
+          if (subValue != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subValue!,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 9,
+                color: AppColors.secondary,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -522,7 +549,7 @@ class _TopCustomerBarRow extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  '$orderCount ${orderCount == 1 ? "order" : "orders"}',
+                  "$orderCount ${context.translate(orderCount == 1 || orderCount == 0 ? 'order' : 'orders')}",
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

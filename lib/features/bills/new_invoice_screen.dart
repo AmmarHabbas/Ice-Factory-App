@@ -4,15 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/database/app_database.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../shared/widgets/main_shell.dart';
 
-const List<String> kStandardIceProducts = [
-  '1 kg ice bag',
-  '5 kgs ice bundle',
-  '5kgs ice bag',
+List<String> kStandardIceProducts(BuildContext context) => [
+  context.translate('1_kg_ice_bag'),
+  context.translate('5_kgs_ice_bundle'),
+  context.translate('5kgs_ice_bag'),
 ];
 
 class _InvoiceLineItem {
@@ -42,28 +43,47 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
   String _paymentStatus = 'unpaid';
   bool _isCustomBill = false;
 
-  final List<_InvoiceLineItem> _items = [
-    _InvoiceLineItem(name: '1 kg ice bag', quantity: 10, unitPrice: 10.0),
-  ];
+  final List<_InvoiceLineItem> _items = [];
 
   double get _subtotal => _items.fold(0.0, (s, i) => s + i.total);
   double get _tax => 0.0;
   double get _total => _subtotal;
 
   @override
-  Widget build(BuildContext context) {
-    final exchangeRate = ref.watch(exchangeRateProvider);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
+    if (_items.isEmpty) {
+      _items.add(
+        _InvoiceLineItem(
+          name: context.translate('1_kg_ice_bag'),
+          quantity: 10,
+          unitPrice: 10.0,
+        ),
+      );
+      return;
+    }
+
+    final currentDefault = kStandardIceProducts(context).first;
+    if (_items.first.name != currentDefault) {
+      _items.first.name = currentDefault;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppHeader(
-        title: _isCustomBill ? 'New Custom Bill' : 'New Ice Bill',
+        title: _isCustomBill
+            ? context.translate('new_custom_bill')
+            : context.translate('new_ice_bill'),
         showMenuButton: false,
         actions: [
           TextButton(
             onPressed: _save,
             child: Text(
-              'Save',
+              context.translate('save'),
               style: GoogleFonts.manrope(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
@@ -119,7 +139,7 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'Ice Cube Bill',
+                              context.translate('ice_bill'),
                               style: GoogleFonts.manrope(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -170,7 +190,7 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'Custom Bill',
+                              context.translate('custom_bill'),
                               style: GoogleFonts.manrope(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -192,19 +212,19 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
 
             // Customer Info
             _SectionCard(
-              title: 'Customer',
+              title: context.translate('customer'),
               child: Column(
                 children: [
                   _AppTextField(
                     controller: _customerCtrl,
-                    label: 'Customer Name',
+                    label: context.translate('customer_name'),
                     icon: Icons.person_outline,
                     validator: (v) => v!.isEmpty ? 'Required' : null,
                   ),
                   const SizedBox(height: AppDimensions.md),
                   _AppTextField(
                     controller: _addressCtrl,
-                    label: 'Delivery Address',
+                    label: context.translate('delivery_address'),
                     icon: Icons.location_on_outlined,
                   ),
                 ],
@@ -214,21 +234,23 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
 
             // Items
             _SectionCard(
-              title: _isCustomBill ? 'Custom Items' : 'Ice Products',
+              title: _isCustomBill
+                  ? context.translate('custom_bill')
+                  : context.translate('ice_products'),
               action: TextButton.icon(
                 onPressed: () => setState(
                   () => _items.add(
                     _InvoiceLineItem(
                       name: _isCustomBill
                           ? 'Custom Item'
-                          : kStandardIceProducts.first,
+                          : kStandardIceProducts(context).first,
                       quantity: 1,
                       unitPrice: 10.0,
                     ),
                   ),
                 ),
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('Add Item'),
+                label: Text(context.translate('add_item')),
               ),
               child: Column(
                 children: [
@@ -248,7 +270,7 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'TOTAL',
+                        context.translate('total'),
                         style: GoogleFonts.jetBrainsMono(
                           fontWeight: FontWeight.bold,
                           color: AppColors.onSurface,
@@ -258,19 +280,11 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            CurrencyFormatter.formatUSD(_total),
+                            CurrencyFormatter.formatSYP(_total),
                             style: GoogleFonts.manrope(
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primary,
-                            ),
-                          ),
-                          Text(
-                            CurrencyFormatter.formatSYP(_total, exchangeRate),
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.secondary,
                             ),
                           ),
                         ],
@@ -284,11 +298,11 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
 
             // Payment Status
             _SectionCard(
-              title: 'Payment',
+              title: context.translate('payment'),
               child: Column(
                 children: [
                   _PaymentStatusButton(
-                    label: 'Unpaid',
+                    label: context.translate('unpaid'),
                     value: 'unpaid',
                     selected: _paymentStatus,
                     color: AppColors.unpaid,
@@ -296,7 +310,7 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
                   ),
                   const SizedBox(height: AppDimensions.sm),
                   _PaymentStatusButton(
-                    label: 'Partial',
+                    label: context.translate('partial'),
                     value: 'partial',
                     selected: _paymentStatus,
                     color: AppColors.partial,
@@ -304,7 +318,7 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
                   ),
                   const SizedBox(height: AppDimensions.sm),
                   _PaymentStatusButton(
-                    label: 'Paid',
+                    label: context.translate('paid'),
                     value: 'paid',
                     selected: _paymentStatus,
                     color: AppColors.paid,
@@ -317,10 +331,10 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
 
             // Notes
             _SectionCard(
-              title: 'Notes',
+              title: context.translate('notes'),
               child: _AppTextField(
                 controller: _notesCtrl,
-                label: 'Optional notes',
+                label: context.translate('optional_notes'),
                 icon: Icons.notes,
                 maxLines: 3,
               ),
@@ -333,7 +347,7 @@ class _NewInvoiceScreenState extends ConsumerState<NewInvoiceScreen> {
               child: ElevatedButton(
                 onPressed: _save,
                 child: Text(
-                  'Create Invoice',
+                  context.translate('create_invoice'),
                   style: GoogleFonts.manrope(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -499,12 +513,12 @@ class _LineItemRow extends StatelessWidget {
                         style: GoogleFonts.manrope(fontSize: 13),
                       )
                     : DropdownButton<String>(
-                        value: kStandardIceProducts.contains(item.name)
+                        value: kStandardIceProducts(context).contains(item.name)
                             ? item.name
-                            : kStandardIceProducts.first,
+                            : kStandardIceProducts(context).first,
                         isDense: true,
                         underline: const SizedBox(),
-                        items: kStandardIceProducts
+                        items: kStandardIceProducts(context)
                             .map(
                               (p) => DropdownMenuItem(
                                 value: p,
@@ -566,7 +580,7 @@ class _LineItemRow extends StatelessWidget {
                     onChanged();
                   },
                   decoration: const InputDecoration(
-                    hintText: 'Price (\$)',
+                    hintText: 'Price',
                     border: InputBorder.none,
                     isDense: true,
                   ),
@@ -575,7 +589,7 @@ class _LineItemRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '= \$${item.total.toStringAsFixed(2)}',
+                '= SYP ${item.total.toStringAsFixed(2)}',
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12,
                   color: AppColors.primary,

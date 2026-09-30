@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/dimensions.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/providers/currency_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../shared/widgets/main_shell.dart';
@@ -19,7 +20,7 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _ctrl = TextEditingController();
   String _query = '';
-  String _category = 'All';
+  String _category = '';
 
   @override
   void dispose() {
@@ -33,53 +34,68 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final customersList = ref.watch(allCustomersStreamProvider).value ?? [];
     final tripsList = ref.watch(allTripsStreamProvider).value ?? [];
 
+    final allLabel = context.translate('all');
+    final invoiceLabel = context.translate('invoice');
+    final customerLabel = context.translate('customer');
+    final tripLabel = context.translate('trip');
+
+    if (_category.isEmpty) {
+      _category = allLabel;
+    }
+
     final results = <_SearchResult>[];
 
     if (_query.isNotEmpty) {
-      if (_category == 'All' || _category == 'Invoice') {
+      if (_category == allLabel || _category == invoiceLabel) {
         for (var b in billsList) {
           if (b.id.toLowerCase().contains(_query.toLowerCase()) ||
               b.customerName.toLowerCase().contains(_query.toLowerCase())) {
-            results.add(_SearchResult(
-              type: 'invoice',
-              title: b.id,
-              subtitle:
-                  '${b.customerName} • ${CurrencyFormatter.formatUSD(b.total)} • ${b.status}',
-              path: '/bills/detail',
-              extra: b,
-            ));
+            results.add(
+              _SearchResult(
+                type: 'invoice',
+                title: b.id,
+                subtitle:
+                    '${b.customerName} • ${CurrencyFormatter.formatSYP(b.total)} • ${b.status}',
+                path: '/bills/detail',
+                extra: b,
+              ),
+            );
           }
         }
       }
 
-      if (_category == 'All' || _category == 'Customer') {
+      if (_category == allLabel || _category == customerLabel) {
         for (var c in customersList) {
           if (c.name.toLowerCase().contains(_query.toLowerCase()) ||
               c.phone.toLowerCase().contains(_query.toLowerCase()) ||
               c.address.toLowerCase().contains(_query.toLowerCase())) {
-            results.add(_SearchResult(
-              type: 'customer',
-              title: c.name,
-              subtitle: '${c.phone} • ${c.address}',
-              path: '/customers/detail',
-              extra: c,
-            ));
+            results.add(
+              _SearchResult(
+                type: 'customer',
+                title: c.name,
+                subtitle: '${c.phone} • ${c.address}',
+                path: '/customers/detail',
+                extra: c,
+              ),
+            );
           }
         }
       }
 
-      if (_category == 'All' || _category == 'Trip') {
+      if (_category == allLabel || _category == tripLabel) {
         for (var t in tripsList) {
           if (t.id.toLowerCase().contains(_query.toLowerCase()) ||
               t.truckNumber.toLowerCase().contains(_query.toLowerCase()) ||
               t.driverName.toLowerCase().contains(_query.toLowerCase())) {
-            results.add(_SearchResult(
-              type: 'trip',
-              title: t.truckNumber,
-              subtitle: 'Driver: ${t.driverName} • ${t.status}',
-              path: '/schedule',
-              extra: t,
-            ));
+            results.add(
+              _SearchResult(
+                type: 'trip',
+                title: t.truckNumber,
+                subtitle: 'Driver: ${t.driverName} • ${t.status}',
+                path: '/schedule/trip-detail',
+                extra: t,
+              ),
+            );
           }
         }
       }
@@ -88,22 +104,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppNavigationDrawer(currentLocation: '/search'),
-      appBar: AppHeader(title: 'Search'),
+      appBar: AppHeader(title: context.translate('search')),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppDimensions.containerMargin,
-                AppDimensions.md,
-                AppDimensions.containerMargin,
-                AppDimensions.sm),
+              AppDimensions.containerMargin,
+              AppDimensions.md,
+              AppDimensions.containerMargin,
+              AppDimensions.sm,
+            ),
             child: AppSearchBar(
-                hint: 'Search invoices, customers, trips...',
-                controller: _ctrl,
-                onChanged: (v) => setState(() => _query = v)),
+              hint: context.translate('search_live'),
+              controller: _ctrl,
+              onChanged: (v) => setState(() => _query = v),
+            ),
           ),
           FilterChipRow(
-            chips: const ['All', 'Invoice', 'Customer', 'Trip'],
+            chips: [allLabel, invoiceLabel, customerLabel, tripLabel],
             selected: _category,
             onSelected: (v) => setState(() => _category = v),
           ),
@@ -112,17 +130,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: _query.isEmpty
                 ? _EmptySearch()
                 : results.isEmpty
-                    ? const EmptyStateWidget(
-                        icon: Icons.search_off,
-                        title: 'No Results Found',
-                        subtitle: 'Try different keywords or categories')
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.containerMargin),
-                        itemCount: results.length,
-                        itemBuilder: (ctx, i) =>
-                            _ResultTile(result: results[i]),
-                      ),
+                ? EmptyStateWidget(
+                    icon: Icons.search_off,
+                    title: context.translate('no_results'),
+                    subtitle: context.translate('try_different_search'),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.containerMargin,
+                    ),
+                    itemCount: results.length,
+                    itemBuilder: (ctx, i) => _ResultTile(result: results[i]),
+                  ),
           ),
         ],
       ),
@@ -136,12 +155,13 @@ class _SearchResult {
   final String subtitle;
   final String path;
   final dynamic extra;
-  _SearchResult(
-      {required this.type,
-      required this.title,
-      required this.subtitle,
-      required this.path,
-      this.extra});
+  _SearchResult({
+    required this.type,
+    required this.title,
+    required this.subtitle,
+    required this.path,
+    this.extra,
+  });
 }
 
 IconData _iconForType(String type) {
@@ -163,19 +183,28 @@ class _EmptySearch extends StatelessWidget {
           width: 80,
           height: 80,
           decoration: const BoxDecoration(
-              color: AppColors.surfaceContainer, shape: BoxShape.circle),
+            color: AppColors.surfaceContainer,
+            shape: BoxShape.circle,
+          ),
           child: const Icon(Icons.search, size: 36, color: AppColors.outline),
         ),
         const SizedBox(height: AppDimensions.lg),
-        Text('Search Everything',
-            style: GoogleFonts.manrope(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface)),
+        Text(
+          context.translate('search_everything'),
+          style: GoogleFonts.manrope(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.onSurface,
+          ),
+        ),
         const SizedBox(height: AppDimensions.sm),
-        Text('Type to search live invoices, customers, trips...',
-            style: GoogleFonts.manrope(
-                fontSize: 14, color: AppColors.onSurfaceVariant)),
+        Text(
+          context.translate('search_live'),
+          style: GoogleFonts.manrope(
+            fontSize: 14,
+            color: AppColors.onSurfaceVariant,
+          ),
+        ),
       ],
     );
   }
@@ -193,8 +222,7 @@ class _ResultTile extends StatelessWidget {
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8),
         ],
       ),
       child: ListTile(
@@ -202,22 +230,36 @@ class _ResultTile extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-              color: AppColors.secondaryContainer,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusSmall)),
-          child: Icon(_iconForType(result.type),
-              color: AppColors.secondary, size: 20),
+            color: AppColors.secondaryContainer,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
+          ),
+          child: Icon(
+            _iconForType(result.type),
+            color: AppColors.secondary,
+            size: 20,
+          ),
         ),
-        title: Text(result.title,
-            style: GoogleFonts.manrope(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface)),
-        subtitle: Text(result.subtitle,
-            style: GoogleFonts.manrope(
-                fontSize: 12, color: AppColors.onSurfaceVariant)),
-        trailing: const Icon(Icons.chevron_right,
-            size: 18, color: AppColors.outline),
-        onTap: () => context.go(result.path, extra: result.extra),
+        title: Text(
+          result.title,
+          style: GoogleFonts.manrope(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.onSurface,
+          ),
+        ),
+        subtitle: Text(
+          result.subtitle,
+          style: GoogleFonts.manrope(
+            fontSize: 12,
+            color: AppColors.onSurfaceVariant,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+          size: 18,
+          color: AppColors.outline,
+        ),
+        onTap: () => context.push(result.path, extra: result.extra),
       ),
     );
   }
